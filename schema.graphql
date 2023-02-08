@@ -1,0 +1,29 @@
+
+type LogPactCreated @entity(immutable: true) {
+  id: Bytes!
+  creator: Bytes!
+  pactId: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type LogPaymentMade @entity(immutable: true) {
+  id: Bytes!
+  pactId: Bytes!
+  value: BigInt!
+  payer: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type LogProposalPactCreated @entity(immutable: true) {
+  id: Bytes!
+  creator: Bytes!
+  uid: Bytes!
+  isEditable: Boolean!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

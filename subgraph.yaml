@@ -1,0 +1,47 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: gigpact
+    network: goerli
+    source:
+      address: "0xa9Fbe5372669b6297A367D7f799063c10c141b0B"
+      abi: GigPact
+      startBlock: 8399138
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - LogPactCreated
+        - LogPaymentMade
+      abis:
+        - name: GigPact
+          file: ./abis/GigPactUpgradeable.json
+      eventHandlers:
+        - event: LogPactCreated(indexed address,bytes32)
+          handler: handleLogPactCreated
+        - event: LogPaymentMade(indexed bytes32,uint256,indexed address)
+          handler: handleLogPaymentMade
+      file: ./src/chainpact.ts
+  - kind: ethereum
+    name: proposalpact
+    network: goerli
+    source:
+      address: "0x2f6c844213c9a638C6eFC974b13aceCb001eea2a"
+      abi: ProposalPact
+      startBlock: 8399231
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - LogProposalPactCreated
+      abis:
+        - name: ProposalPact
+          file: ./abis/ProposalPactUpgradeable.json
+      eventHandlers:
+        - event: logPactCreated(indexed address,bytes32)
+          handler: handleLogProposalPactCreated
+      file: ./src/chainpact.ts
