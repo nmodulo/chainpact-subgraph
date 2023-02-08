@@ -1,7 +1,7 @@
 import {
   LogPactCreated as LogPactCreatedEvent,
   LogPaymentMade as LogPaymentMadeEvent
-} from "../generated/test/GigPact"
+} from "../generated/gigpact/GigPact"
 import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent } from "../generated/proposalpact/ProposalPact"
 import { LogPactCreated, LogPaymentMade, LogProposalPactCreated } from "../generated/schema"
 import { TypedMap } from '@graphprotocol/graph-ts'
