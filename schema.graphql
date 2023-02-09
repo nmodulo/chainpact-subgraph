@@ -18,10 +18,28 @@ type LogPaymentMade @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type VotingInfo @entity(immutable: true) {
+  id: Bytes!
+  votingEnabled: Boolean!
+  openParticipation: Boolean!
+  refundOnVotedYes: Boolean!
+  refundOnVotedNo: Boolean!
+  votingConcluded: Boolean!
+  duration: BigInt!
+  votingStartTimestamp: BigInt!
+  minContribution: String!
+}
+
 type LogProposalPactCreated @entity(immutable: true) {
   id: Bytes!
   creator: Bytes!
   uid: Bytes!
+  pactText: String!
+  refundAvailable: Boolean!
+  totalValue: String!
+  yesVotes: BigInt!
+  noVotes: BigInt!
+  votingInfo: VotingInfo!
   isEditable: Boolean!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
