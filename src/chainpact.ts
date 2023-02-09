@@ -4,7 +4,8 @@ import {
 } from "../generated/gigpact/GigPact"
 import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent } from "../generated/proposalpact/ProposalPact"
 import { LogPactCreated, LogPaymentMade, LogProposalPactCreated, VotingInfo } from "../generated/schema"
-import { ByteArray, Bytes, TypedMap } from '@graphprotocol/graph-ts'
+import { log } from '@graphprotocol/graph-ts'
+
 
 export function handleLogPactCreated(event: LogPactCreatedEvent): void {
   let entity = new LogPactCreated(
@@ -12,7 +13,6 @@ export function handleLogPactCreated(event: LogPactCreatedEvent): void {
   )
   entity.creator = event.params.creator
   entity.pactId = event.params.pactid
-  console.log("hey there")
 
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
@@ -40,10 +40,8 @@ export function handleLogProposalPactCreated(event: LogProposalPactCreatedEvent)
   let entity = new LogProposalPactCreated(
     event.transaction.hash.concatI32(event.logIndex.toI32()) 
   )
-  let votingInfoEntity = new VotingInfo(event.transaction.hash.concatI32(event.logIndex.toI32()))
   let contract = ProposalPact.bind(event.address)
   let pactInfoFromChain = contract.pacts(event.params.uid)
-  let votingInfoFromChain = contract.votingInfo(event.params.uid)
 
   entity.creator = event.params.creator
   entity.uid = event.params.uid
@@ -53,7 +51,21 @@ export function handleLogProposalPactCreated(event: LogProposalPactCreatedEvent)
   entity.totalValue = pactInfoFromChain.getTotalValue().toString()
   entity.yesVotes = pactInfoFromChain.getYesVotes()
   entity.noVotes = pactInfoFromChain.getNoVotes()
-  console.log("hey there")
+  entity.votingInfo = loadVotingInfo(event).id
+  log.info("hey there 🚀 {}", ["pact data test!!!"])
+  
+
+  entity.blockNumber = event.block.number
+  entity.blockTimestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+
+  entity.save()
+}
+
+export function loadVotingInfo(event: LogProposalPactCreatedEvent): VotingInfo {
+  let votingInfoEntity = new VotingInfo(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  let contract = ProposalPact.bind(event.address)
+  let votingInfoFromChain = contract.votingInfo(event.params.uid)
 
   votingInfoEntity.votingEnabled = votingInfoFromChain.getVotingEnabled()
   votingInfoEntity.openParticipation = votingInfoFromChain.getOpenParticipation()
@@ -63,12 +75,8 @@ export function handleLogProposalPactCreated(event: LogProposalPactCreatedEvent)
   votingInfoEntity.duration = votingInfoFromChain.getDuration()
   votingInfoEntity.votingStartTimestamp = votingInfoFromChain.getVotingStartTimestamp()
   votingInfoEntity.minContribution = votingInfoFromChain.getMinContribution().toString()
-  
-  // entity.votingInfo = votingInfoEntity
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  votingInfoEntity.save()
 
-  entity.save()
+  return votingInfoEntity
 }
