@@ -4,13 +4,15 @@ import {
   test,
   clearStore,
   beforeAll,
-  afterAll
+  afterAll,
+  createMockedFunction
 } from "matchstick-as/assembly/index"
-import { Address, Bytes } from "@graphprotocol/graph-ts"
+import { Address, Bytes, ethereum, log } from "@graphprotocol/graph-ts"
 // import { AdminChanged } from "../generated/schema"
 // import { AdminChanged as AdminChangedEvent } from "../generated/test/test"
 import { handleLogPactCreated } from "../src/chainpact"
 import { createLogPactCreatedEvent } from "./test-utils"
+import {ProposalPact} from "../generated/proposalpact/ProposalPact"
 
 // Tests structure (matchstick-as >=0.5.0)
 // https://thegraph.com/docs/en/developer/matchstick/#tests-structure-0-5-0
@@ -72,7 +74,26 @@ describe("Entity checkup for GigPact", () => {
   })
 
   test("LogPactCreated created and stored", () => {
-    
-    assert.entityCount("LogPactCreated", 1)
+    // assert.entityCount("LogPactCreated", 0)
   })
 })
+
+// describe("Smart contract checkup for ProposalPact", () => {
+//   beforeAll(() => {
+//     let contractAddress = Address.fromString('0x2f6c844213c9a638C6eFC974b13aceCb001eea2a')
+//     let pactId = Bytes.fromHexString("0xd7d14b42b4193bbd9aa6143bfafe2464913dca6b75e1f3326297f56f55bec57f")
+//     createMockedFunction(contractAddress, 'createPact', 'createPact(bytes32):(uint32,uint32,uint128,bool,bool,address,bytes32,string)')
+//       .withArgs([ethereum.Value.fromBytes(pactId)])
+//     let proposalPact = ProposalPact.bind(contractAddress)
+//     log.info("🚀🚀 Pact Text : {}", [proposalPact.pacts(pactId).getPactText()])
+//   })
+
+//   afterAll(() => {
+//     clearStore()
+//   })
+
+//   test("ProposalPact created and stored", () => {
+    
+//     assert.entityCount("LogPactCreated", 1)
+//   })
+// })

@@ -2,8 +2,8 @@ import {
   LogPactCreated as LogPactCreatedEvent,
   LogPaymentMade as LogPaymentMadeEvent
 } from "../generated/gigpact/GigPact"
-import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent } from "../generated/proposalpact/ProposalPact"
-import { LogPactCreated, LogPaymentMade, LogProposalPactCreated, VotingInfo } from "../generated/schema"
+import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent, ProposalPact__userInteractionDataResult } from "../generated/proposalpact/ProposalPact"
+import { LogPactCreated, LogPaymentMade, LogProposalPactCreated, UserInteractionData, VotingInfo } from "../generated/schema"
 import { Address, Bytes, log } from '@graphprotocol/graph-ts'
 
 
@@ -56,6 +56,17 @@ export function handleLogProposalPactCreated(event: LogProposalPactCreatedEvent)
   entity.voters = participantsInfoFromChain.getValue0().map<Bytes>((each: Bytes) => each)
   entity.yesBeneficiaries = participantsInfoFromChain.getValue1().map<Bytes>((each: Bytes) => each)
   entity.noBeneficiaries = participantsInfoFromChain.getValue2().map<Bytes>((each: Bytes) => each)
+
+  const voters = participantsInfoFromChain.getValue0()
+  let userInteractionDatas: Bytes[] = []
+
+  for (let index = 0; index < voters.length; index++) {
+    userInteractionDatas.push(
+      loadUserInteractionData(event.address, event.params.uid, voters[index]).id
+    )
+  }
+
+  entity.userInteractionData = userInteractionDatas
   
   log.info("hey there 🚀 {}", ["pact data test!!!"])
   
@@ -84,4 +95,19 @@ export function loadVotingInfo(event: LogProposalPactCreatedEvent): VotingInfo {
   votingInfoEntity.save()
 
   return votingInfoEntity
+}
+
+export function loadUserInteractionData(contractAddr: Address, pactId: Bytes, voter: Address): UserInteractionData {
+  let entity = new UserInteractionData(pactId.concat(voter))
+  let contract = ProposalPact.bind(contractAddr)
+  let userInteractionData = contract.userInteractionData(pactId, voter)
+
+  entity.canVote = userInteractionData.getCanVote()
+  entity.hasVoted = userInteractionData.getHasVoted()
+  entity.castedVote = userInteractionData.getCastedVote()
+  entity.contribution = userInteractionData.getContribution().toString()
+
+  entity.save()
+
+  return entity
 }

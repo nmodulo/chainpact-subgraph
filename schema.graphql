@@ -30,6 +30,14 @@ type VotingInfo @entity(immutable: true) {
   minContribution: String!
 }
 
+type UserInteractionData @entity(immutable: true) {
+  id: Bytes!
+  canVote: Boolean!
+  hasVoted: Boolean!
+  castedVote: Boolean!
+  contribution: String!
+}
+
 type LogProposalPactCreated @entity(immutable: true) {
   id: Bytes!
   creator: Bytes!
@@ -44,6 +52,7 @@ type LogProposalPactCreated @entity(immutable: true) {
   yesBeneficiaries: [Bytes!]!
   noBeneficiaries: [Bytes!]!
   isEditable: Boolean!
+  userInteractionData: [UserInteractionData!]!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
