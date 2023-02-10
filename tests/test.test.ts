@@ -55,13 +55,13 @@ import { createLogPactCreatedEvent } from "./test-utils"
     // https://thegraph.com/docs/en/developer/matchstick/#asserts
   // })
 // })
-describe("Describe entity assertions", () => {
+describe("Entity checkup for GigPact", () => {
   beforeAll(() => {
     let creator = Address.fromString(
       "0x0000000000000000000000000000000000000001"
     )
     let pactId = Bytes.fromHexString(
-      "0x81aafcbda11ad6e48cf6b7a651146fcf6cae62755d62814b396aea9be0f23aab"
+      "0x7ccab383b928eeaec5fd48c295eac05c2e9ace2073bc0d9b94c893e0c4c1ebd8"
     )
     let newPactCreatedEvent = createLogPactCreatedEvent(creator, pactId)
     handleLogPactCreated(newPactCreatedEvent)
@@ -72,6 +72,7 @@ describe("Describe entity assertions", () => {
   })
 
   test("LogPactCreated created and stored", () => {
+    
     assert.entityCount("LogPactCreated", 1)
   })
 })

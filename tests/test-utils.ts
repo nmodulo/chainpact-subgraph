@@ -58,8 +58,8 @@ import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent } from "../
 export function createLogPactCreatedEvent(
   creator: Address,
   pactId: Bytes
-) {
-  let pactCreatedEvent = <LogPactCreatedEvent>(newMockEvent())
+): LogPactCreatedEvent {
+  let pactCreatedEvent = changetype<LogPactCreatedEvent>(newMockEvent())
   pactCreatedEvent.parameters = new Array()
   pactCreatedEvent.parameters.push(
     new ethereum.EventParam(
@@ -70,7 +70,7 @@ export function createLogPactCreatedEvent(
   pactCreatedEvent.parameters.push(
     new ethereum.EventParam(
       "pactid",
-      ethereum.Value.fromAddress(pactId)
+      ethereum.Value.fromBytes(pactId)
     )
   )
 
