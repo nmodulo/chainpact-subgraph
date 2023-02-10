@@ -4,7 +4,7 @@ import {
 } from "../generated/gigpact/GigPact"
 import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent } from "../generated/proposalpact/ProposalPact"
 import { LogPactCreated, LogPaymentMade, LogProposalPactCreated, VotingInfo } from "../generated/schema"
-import { log } from '@graphprotocol/graph-ts'
+import { Address, Bytes, log } from '@graphprotocol/graph-ts'
 
 
 export function handleLogPactCreated(event: LogPactCreatedEvent): void {
@@ -42,6 +42,7 @@ export function handleLogProposalPactCreated(event: LogProposalPactCreatedEvent)
   )
   let contract = ProposalPact.bind(event.address)
   let pactInfoFromChain = contract.pacts(event.params.uid)
+  let participantsInfoFromChain = contract.getParticipants(event.params.uid)
 
   entity.creator = event.params.creator
   entity.uid = event.params.uid
@@ -52,6 +53,10 @@ export function handleLogProposalPactCreated(event: LogProposalPactCreatedEvent)
   entity.yesVotes = pactInfoFromChain.getYesVotes()
   entity.noVotes = pactInfoFromChain.getNoVotes()
   entity.votingInfo = loadVotingInfo(event).id
+  entity.voters = participantsInfoFromChain.getValue0().map<Bytes>((each: Bytes) => each)
+  entity.yesBeneficiaries = participantsInfoFromChain.getValue1().map<Bytes>((each: Bytes) => each)
+  entity.noBeneficiaries = participantsInfoFromChain.getValue2().map<Bytes>((each: Bytes) => each)
+  
   log.info("hey there 🚀 {}", ["pact data test!!!"])
   
 

@@ -40,6 +40,9 @@ type LogProposalPactCreated @entity(immutable: true) {
   yesVotes: BigInt!
   noVotes: BigInt!
   votingInfo: VotingInfo!
+  voters: [Bytes!]!
+  yesBeneficiaries: [Bytes!]!
+  noBeneficiaries: [Bytes!]!
   isEditable: Boolean!
   blockNumber: BigInt!
   blockTimestamp: BigInt!

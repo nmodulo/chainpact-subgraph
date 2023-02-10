@@ -1,4 +1,4 @@
-import { newMockEvent } from "matchstick-as"
+import { newMockEvent, newMockCall } from "matchstick-as"
 import { ethereum, Address, Bytes } from "@graphprotocol/graph-ts"
 // import { AdminChanged, BeaconUpgraded, Upgraded } from "../generated/test/test"
 import {

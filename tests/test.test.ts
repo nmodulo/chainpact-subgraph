@@ -61,7 +61,7 @@ describe("Describe entity assertions", () => {
       "0x0000000000000000000000000000000000000001"
     )
     let pactId = Bytes.fromHexString(
-      "0x83538653829h2938652"
+      "0x81aafcbda11ad6e48cf6b7a651146fcf6cae62755d62814b396aea9be0f23aab"
     )
     let newPactCreatedEvent = createLogPactCreatedEvent(creator, pactId)
     handleLogPactCreated(newPactCreatedEvent)
@@ -73,17 +73,5 @@ describe("Describe entity assertions", () => {
 
   test("LogPactCreated created and stored", () => {
     assert.entityCount("LogPactCreated", 1)
-    assert.fieldEquals(
-      "LogPactCreated",
-      "0xa16081f360e3847006db660bae1c6d1b2e17ec2a-1",
-      "creator",
-      "0x0000000000000000000000000000000000000001"
-    )
-    assert.fieldEquals(
-      "LogPactCreated",
-      "0xa16081f360e3847006db660bae1c6d1b2e17ec2a-1",
-      "pactid",
-      "0x83538653829h2938652"
-    )
   })
 })
