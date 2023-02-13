@@ -1,23 +1,62 @@
 import {
+  GigPact,
   LogPactCreated as LogPactCreatedEvent,
   LogPaymentMade as LogPaymentMadeEvent
 } from "../generated/gigpact/GigPact"
-import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent, ProposalPact__userInteractionDataResult } from "../generated/proposalpact/ProposalPact"
-import { LogPactCreated, LogPaymentMade, LogProposalPactCreated, UserInteractionData, VotingInfo } from "../generated/schema"
+import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent, ProposalPact__userInteractionDataResult, ProposalPact__pactsResult } from "../generated/proposalpact/ProposalPact"
+import { DisputeData, GigPactEntity, LogPaymentMade, LogProposalPactCreated, PayData, UserInteractionData, VotingInfo } from "../generated/schema"
 import { Address, Bytes, log } from '@graphprotocol/graph-ts'
 
 
 export function handleLogPactCreated(event: LogPactCreatedEvent): void {
-  let entity = new LogPactCreated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+  let entity = new GigPactEntity(
+    event.params.pactid
   )
+  let disputeDataEntity = new DisputeData(event.params.pactid)
+  let payData = new PayData(event.params.pactid)
+  let contract = GigPact.bind(event.address)
+  let pactData = contract.pactData(event.params.pactid)
+  let payDataFromChain = contract.payData(event.params.pactid)
+  let arbitrators = contract.getArbitratrators(event.params.pactid)
+  let documentHash = contract.externalDocumentHash(event.params.pactid)
+
+  disputeDataEntity.proposedAmount = payDataFromChain.getProposedAmount().toString()
+  disputeDataEntity.arbitratorProposer = pactData.getArbitratorProposer()
+  disputeDataEntity.arbitratorProposed = pactData.getArbitratorProposed()
+  disputeDataEntity.arbitratorAccepted = pactData.getArbitratorAccepted()
+  let proposedArbitrators:Bytes[] = []
+  for (let i=0; i < arbitrators.length; i++) {
+    proposedArbitrators.push(changetype<Bytes>(arbitrators[i]))
+  }
+  disputeDataEntity.proposedArbitrators = proposedArbitrators
+
+  payData.pauseDuration = payDataFromChain.getPauseDuration()
+  payData.pauseResumeTime = payDataFromChain.getPauseResumeTime()
+  payData.lastPayTimeStamp = payDataFromChain.getLastPayTimeStamp()
+  payData.lastPayAmount = payDataFromChain.getLastPayAmount().toString()
+  payData.proposedAmount = payDataFromChain.getProposedAmount().toString()
+
   entity.creator = event.params.creator
+  entity.employer = pactData.getEmployer()
+  entity.employee = pactData.getEmployee()
+  entity.payAmount = pactData.getPayAmount().toString()
+  entity.erc20TokenAddress = pactData.getErc20TokenAddress()
+  entity.pactPayScheduleDays = pactData.getPayScheduleDays()
+  entity.pactName = pactData.getPactName().toString()
+  entity.employeeSignedDate = pactData.getEmployeeSignDate()
   entity.pactId = event.params.pactid
+  entity.disputeData = disputeDataEntity.id
+  entity.payData = payData.id
+  entity.stakeAmount = pactData.getStakeAmount().toString()
+  entity.pactState = pactData.getPactState()
+  entity.documentHash = documentHash
 
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
   entity.transactionHash = event.transaction.hash
 
+  disputeDataEntity.save()
+  payData.save()
   entity.save()
 }
 
@@ -38,7 +77,7 @@ export function handleLogPaymentMade(event: LogPaymentMadeEvent): void {
 
 export function handleLogProposalPactCreated(event: LogProposalPactCreatedEvent): void {
   let entity = new LogProposalPactCreated(
-    event.transaction.hash.concatI32(event.logIndex.toI32()) 
+    event.params.uid
   )
   let contract = ProposalPact.bind(event.address)
   let pactInfoFromChain = contract.pacts(event.params.uid)
@@ -88,7 +127,7 @@ export function loadVotingInfo(event: LogProposalPactCreatedEvent): VotingInfo {
   votingInfoEntity.refundOnVotedYes = votingInfoFromChain.getRefundOnVotedYes()
   votingInfoEntity.refundOnVotedNo = votingInfoFromChain.getRefundOnVotedNo()
   votingInfoEntity.votingConcluded = votingInfoFromChain.getVotingConcluded()
-  votingInfoEntity.duration = votingInfoFromChain.getDuration()
+  votingInfoEntity.duration = votingInfoFromChain.getDuration().toI32()
   votingInfoEntity.votingStartTimestamp = votingInfoFromChain.getVotingStartTimestamp()
   votingInfoEntity.minContribution = votingInfoFromChain.getMinContribution().toString()
 
