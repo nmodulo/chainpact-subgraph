@@ -6,8 +6,8 @@ dataSources:
     name: gigpact
     network: goerli
     source:
-      address: "0xa9Fbe5372669b6297A367D7f799063c10c141b0B"
       abi: GigPact
+      address: "0xa9Fbe5372669b6297A367D7f799063c10c141b0B"
       startBlock: 8399138
     mapping:
       kind: ethereum/events
@@ -29,8 +29,8 @@ dataSources:
     name: proposalpact
     network: goerli
     source:
-      address: "0x2f6c844213c9a638C6eFC974b13aceCb001eea2a"
       abi: ProposalPact
+      address: "0x2f6c844213c9a638C6eFC974b13aceCb001eea2a"
       startBlock: 8399231
     mapping:
       kind: ethereum/events
