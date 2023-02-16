@@ -24,6 +24,8 @@ dataSources:
           handler: handleLogPactCreated
         - event: LogPaymentMade(indexed bytes32,uint256,indexed address)
           handler: handleLogPaymentMade
+        - event: LogStateUpdate(indexed bytes32,uint8,indexed address)
+          handler: handleLogStateUpdate
       file: ./src/chainpact.ts
   - kind: ethereum
     name: proposalpact

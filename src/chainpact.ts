@@ -1,7 +1,8 @@
 import {
   GigPact,
   LogPactCreated as LogPactCreatedEvent,
-  LogPaymentMade as LogPaymentMadeEvent
+  LogPaymentMade as LogPaymentMadeEvent,
+  LogStateUpdate as LogStateUpdateEvent
 } from "../generated/gigpact/GigPact"
 import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent, ProposalPact__userInteractionDataResult, ProposalPact__pactsResult, logvotingConcluded as LogvotingConcludedEvent } from "../generated/proposalpact/ProposalPact"
 import { DisputeData, GigPactEntity, LogPaymentMade, LogProposalPactCreated, PayData, UserInteractionData, VotingInfo } from "../generated/schema"
@@ -71,6 +72,15 @@ export function handleLogPaymentMade(event: LogPaymentMadeEvent): void {
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
   entity.transactionHash = event.transaction.hash
+
+  entity.save()
+}
+
+export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
+  let entity = GigPactEntity.load( event.params.pactid )
+  if (!entity) return
+
+  entity.pactState = event.params.newState
 
   entity.save()
 }
