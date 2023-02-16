@@ -44,4 +44,6 @@ dataSources:
       eventHandlers:
         - event: logPactCreated(indexed address,bytes32)
           handler: handleLogProposalPactCreated
+        - event: logvotingConcluded(bytes32)
+          handler: handleLogVotingConcluded
       file: ./src/chainpact.ts

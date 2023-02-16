@@ -3,7 +3,7 @@ import {
   LogPactCreated as LogPactCreatedEvent,
   LogPaymentMade as LogPaymentMadeEvent
 } from "../generated/gigpact/GigPact"
-import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent, ProposalPact__userInteractionDataResult, ProposalPact__pactsResult } from "../generated/proposalpact/ProposalPact"
+import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent, ProposalPact__userInteractionDataResult, ProposalPact__pactsResult, logvotingConcluded as LogvotingConcludedEvent } from "../generated/proposalpact/ProposalPact"
 import { DisputeData, GigPactEntity, LogPaymentMade, LogProposalPactCreated, PayData, UserInteractionData, VotingInfo } from "../generated/schema"
 import { Address, Bytes, log } from '@graphprotocol/graph-ts'
 
@@ -118,7 +118,7 @@ export function handleLogProposalPactCreated(event: LogProposalPactCreatedEvent)
 }
 
 export function loadVotingInfo(event: LogProposalPactCreatedEvent): VotingInfo {
-  let votingInfoEntity = new VotingInfo(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  let votingInfoEntity = new VotingInfo(event.params.uid)
   let contract = ProposalPact.bind(event.address)
   let votingInfoFromChain = contract.votingInfo(event.params.uid)
 
@@ -149,4 +149,18 @@ export function loadUserInteractionData(contractAddr: Address, pactId: Bytes, vo
   entity.save()
 
   return entity
+}
+
+export function handleLogVotingConcluded(event: LogvotingConcludedEvent): void {
+  let votingInfoEntity = VotingInfo.load(event.params.uid)
+  let entity = LogProposalPactCreated.load(event.params.uid)
+
+  if (!votingInfoEntity || !entity) return
+  votingInfoEntity.votingConcluded = true
+
+  votingInfoEntity.save()
+
+  entity.votingInfo = votingInfoEntity.id
+
+  entity.save()
 }

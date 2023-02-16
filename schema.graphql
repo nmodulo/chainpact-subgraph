@@ -1,5 +1,5 @@
 
-type GigPactEntity @entity(immutable: true) {
+type GigPactEntity @entity {
   id: Bytes!
   creator: Bytes!
   employer: Bytes!
@@ -47,7 +47,7 @@ type LogPaymentMade @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type VotingInfo @entity(immutable: true) {
+type VotingInfo @entity {
   id: Bytes!
   votingEnabled: Boolean!
   openParticipation: Boolean!
