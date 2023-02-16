@@ -4,7 +4,7 @@ import {
   LogPaymentMade as LogPaymentMadeEvent,
   LogStateUpdate as LogStateUpdateEvent
 } from "../generated/gigpact/GigPact"
-import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent, ProposalPact__userInteractionDataResult, ProposalPact__pactsResult, logvotingConcluded as LogvotingConcludedEvent } from "../generated/proposalpact/ProposalPact"
+import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent, logvotingConcluded as LogvotingConcludedEvent, logContribution as LogContributionEvent, logAmountOut as LogAmountOutEvent } from "../generated/proposalpact/ProposalPact"
 import { DisputeData, GigPactEntity, LogPaymentMade, LogProposalPactCreated, PayData, UserInteractionData, VotingInfo } from "../generated/schema"
 import { Address, Bytes, log } from '@graphprotocol/graph-ts'
 
@@ -173,4 +173,50 @@ export function handleLogVotingConcluded(event: LogvotingConcludedEvent): void {
   entity.votingInfo = votingInfoEntity.id
 
   entity.save()
+}
+
+export function handleLogContribution(event: LogContributionEvent): void {
+  let proposalPactEntity = LogProposalPactCreated.load( event.params.uid )
+  if (!proposalPactEntity) return
+
+  let userInteractionDataEntity = UserInteractionData.load(event.params.uid.concat(event.params.payer))
+  let contract = ProposalPact.bind(event.address)
+  let userInteractionData = contract.userInteractionData(event.params.uid, event.params.payer)
+
+  if (!userInteractionDataEntity) {
+    userInteractionDataEntity = new UserInteractionData(event.params.uid.concat(event.params.payer))
+  }
+
+  userInteractionDataEntity.canVote = userInteractionData.getCanVote()
+  userInteractionDataEntity.hasVoted = userInteractionData.getHasVoted()
+  userInteractionDataEntity.castedVote = userInteractionData.getCastedVote()
+  userInteractionDataEntity.contribution = userInteractionData.getContribution().toString()
+
+  proposalPactEntity.totalValue = contract.pacts(event.params.uid).getTotalValue().toString()
+
+  userInteractionDataEntity.save()
+  proposalPactEntity.save()
+}
+
+export function handleLogAmountOut(event: LogAmountOutEvent): void {
+  let proposalPactEntity = LogProposalPactCreated.load( event.params.uid )
+  if (!proposalPactEntity) return
+
+  let userInteractionDataEntity = UserInteractionData.load(event.params.uid.concat(event.params.payee))
+  let contract = ProposalPact.bind(event.address)
+  let userInteractionData = contract.userInteractionData(event.params.uid, event.params.payee)
+
+  if (!userInteractionDataEntity) {
+    userInteractionDataEntity = new UserInteractionData(event.params.uid.concat(event.params.payee))
+  }
+
+  userInteractionDataEntity.canVote = userInteractionData.getCanVote()
+  userInteractionDataEntity.hasVoted = userInteractionData.getHasVoted()
+  userInteractionDataEntity.castedVote = userInteractionData.getCastedVote()
+  userInteractionDataEntity.contribution = userInteractionData.getContribution().toString()
+
+  proposalPactEntity.totalValue = contract.pacts(event.params.uid).getTotalValue().toString()
+
+  userInteractionDataEntity.save()
+  proposalPactEntity.save()
 }

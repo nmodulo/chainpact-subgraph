@@ -48,4 +48,8 @@ dataSources:
           handler: handleLogProposalPactCreated
         - event: logvotingConcluded(bytes32)
           handler: handleLogVotingConcluded
+        - event: logContribution(indexed bytes32,address,uint256)
+          handler: handleLogContribution
+        - event: logAmountOut(indexed bytes32,indexed address,uint256)
+          handler: handleLogAmountOut
       file: ./src/chainpact.ts

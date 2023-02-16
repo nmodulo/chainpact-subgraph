@@ -59,7 +59,7 @@ type VotingInfo @entity {
   minContribution: String!
 }
 
-type UserInteractionData @entity(immutable: true) {
+type UserInteractionData @entity {
   id: Bytes!
   canVote: Boolean!
   hasVoted: Boolean!
@@ -67,7 +67,7 @@ type UserInteractionData @entity(immutable: true) {
   contribution: String!
 }
 
-type LogProposalPactCreated @entity(immutable: true) {
+type LogProposalPactCreated @entity {
   id: Bytes!
   creator: Bytes!
   uid: Bytes!
