@@ -4,7 +4,7 @@ import {
   LogPaymentMade as LogPaymentMadeEvent,
   LogStateUpdate as LogStateUpdateEvent
 } from "../generated/gigpact/GigPact"
-import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent, logvotingConcluded as LogvotingConcludedEvent, logContribution as LogContributionEvent, logAmountOut as LogAmountOutEvent } from "../generated/proposalpact/ProposalPact"
+import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent, logvotingConcluded as LogvotingConcludedEvent, logContribution as LogContributionEvent, logAmountOut as LogAmountOutEvent, SetTextCall } from "../generated/proposalpact/ProposalPact"
 import { DisputeData, GigPactEntity, LogPaymentMade, LogProposalPactCreated, PayData, UserInteractionData, VotingInfo } from "../generated/schema"
 import { Address, Bytes, log } from '@graphprotocol/graph-ts'
 
@@ -218,5 +218,15 @@ export function handleLogAmountOut(event: LogAmountOutEvent): void {
   proposalPactEntity.totalValue = contract.pacts(event.params.uid).getTotalValue().toString()
 
   userInteractionDataEntity.save()
+  proposalPactEntity.save()
+}
+
+// call handlers
+export function handleSetText(call: SetTextCall): void {
+  let proposalPactEntity = LogProposalPactCreated.load(call.inputs.pactid)
+  if (!proposalPactEntity) return
+
+  proposalPactEntity.pactText = call.inputs.pactText_
+
   proposalPactEntity.save()
 }

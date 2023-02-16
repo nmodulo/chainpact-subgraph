@@ -52,4 +52,7 @@ dataSources:
           handler: handleLogContribution
         - event: logAmountOut(indexed bytes32,indexed address,uint256)
           handler: handleLogAmountOut
+      callHandlers:
+        - function: setText(bytes32,string)
+          handler: handleSetText
       file: ./src/chainpact.ts
