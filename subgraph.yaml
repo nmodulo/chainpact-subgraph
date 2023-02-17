@@ -4,17 +4,17 @@ schema:
 dataSources:
   - kind: ethereum
     name: gigpact
-    network: mainnet
+    network: goerli
     source:
-      address: "0x0165878A594ca255338adfa4d48449f69242Eb8F"
       abi: GigPact
-      startBlock: 0
+      address: "0xa9Fbe5372669b6297A367D7f799063c10c141b0B"
+      startBlock: 8399138
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - LogPactCreated
+        - GigPactEntity
         - LogPaymentMade
       abis:
         - name: GigPact
@@ -24,14 +24,16 @@ dataSources:
           handler: handleLogPactCreated
         - event: LogPaymentMade(indexed bytes32,uint256,indexed address)
           handler: handleLogPaymentMade
+        - event: LogStateUpdate(indexed bytes32,uint8,indexed address)
+          handler: handleLogStateUpdate
       file: ./src/chainpact.ts
   - kind: ethereum
     name: proposalpact
-    network: mainnet
+    network: goerli
     source:
-      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
       abi: ProposalPact
-      startBlock: 0
+      address: "0x2f6c844213c9a638C6eFC974b13aceCb001eea2a"
+      startBlock: 8399231
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -44,4 +46,13 @@ dataSources:
       eventHandlers:
         - event: logPactCreated(indexed address,bytes32)
           handler: handleLogProposalPactCreated
+        - event: logvotingConcluded(bytes32)
+          handler: handleLogVotingConcluded
+        - event: logContribution(indexed bytes32,address,uint256)
+          handler: handleLogContribution
+        - event: logAmountOut(indexed bytes32,indexed address,uint256)
+          handler: handleLogAmountOut
+      callHandlers:
+        - function: setText(bytes32,string)
+          handler: handleSetText
       file: ./src/chainpact.ts

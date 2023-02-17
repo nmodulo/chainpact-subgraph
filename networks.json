@@ -1,7 +1,42 @@
 {
   "goerli": {
-    "chainpact": {
-      "address": "0x2f6c844213c9a638C6eFC974b13aceCb001eea2a"
+    "gigpact": {
+      "address": "0xa9Fbe5372669b6297A367D7f799063c10c141b0B",
+      "startBlock": 8399138
+    },
+    "proposalpact": {
+      "address": "0x2f6c844213c9a638C6eFC974b13aceCb001eea2a",
+      "startBlock": 8399231
+    }
+  },
+  "fuji": {
+    "gigpact": {
+      "address": "0xa4ce7b4024CD0D863823FB7Cd3849e8Aacbd5f97",
+      "startBlock": 18258496
+    },
+    "proposalpact": {
+      "address": "0x1d5FaD56f591772dc639Bcb97d8d8Da1C1d716c1",
+      "startBlock": 17251372
+    }
+  },
+  "mumbai": {
+    "gigpact": {
+      "address": "0xa9Fbe5372669b6297A367D7f799063c10c141b0B",
+      "startBlock": 31545877
+    },
+    "proposalpact": {
+      "address": "0x2f6c844213c9a638C6eFC974b13aceCb001eea2a",
+      "startBlock": 31546197
+    }
+  },
+  "chapel": {
+    "gigpact": {
+      "address": "0xa9Fbe5372669b6297A367D7f799063c10c141b0B",
+      "startBlock": 26975115
+    },
+    "proposalpact": {
+      "address": "0x2f6c844213c9a638C6eFC974b13aceCb001eea2a",
+      "startBlock": 26975154
     }
   }
 }

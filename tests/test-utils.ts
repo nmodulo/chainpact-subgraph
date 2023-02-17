@@ -1,4 +1,4 @@
-import { newMockEvent } from "matchstick-as"
+import { newMockEvent, newMockCall } from "matchstick-as"
 import { ethereum, Address, Bytes } from "@graphprotocol/graph-ts"
 // import { AdminChanged, BeaconUpgraded, Upgraded } from "../generated/test/test"
 import {
@@ -58,8 +58,8 @@ import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent } from "../
 export function createLogPactCreatedEvent(
   creator: Address,
   pactId: Bytes
-) {
-  let pactCreatedEvent = <LogPactCreatedEvent>(newMockEvent())
+): LogPactCreatedEvent {
+  let pactCreatedEvent = changetype<LogPactCreatedEvent>(newMockEvent())
   pactCreatedEvent.parameters = new Array()
   pactCreatedEvent.parameters.push(
     new ethereum.EventParam(
@@ -70,7 +70,7 @@ export function createLogPactCreatedEvent(
   pactCreatedEvent.parameters.push(
     new ethereum.EventParam(
       "pactid",
-      ethereum.Value.fromAddress(pactId)
+      ethereum.Value.fromBytes(pactId)
     )
   )
 

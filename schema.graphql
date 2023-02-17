@@ -1,11 +1,40 @@
 
-type LogPactCreated @entity(immutable: true) {
+type GigPactEntity @entity {
   id: Bytes!
   creator: Bytes!
+  employer: Bytes!
+  employee: Bytes!
+  payAmount: String!
+  erc20TokenAddress: Bytes!
+  pactPayScheduleDays: BigInt!
+  pactName: String!
+  employeeSignedDate: BigInt
   pactId: Bytes!
+  documentHash: Bytes
+  disputeData: DisputeData!
+  payData: PayData!
+  stakeAmount: String!
+  pactState: Int!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
+}
+type DisputeData @entity {
+  id: Bytes!
+  arbitratorAccepted: Boolean!
+  arbitratorProposed: Boolean!
+  arbitratorProposer: Bytes!
+  proposedAmount: String!
+  proposedArbitrators: [Bytes!]!
+}
+
+type PayData @entity {
+  id: Bytes!
+  lastPayAmount: String!
+  lastPayTimeStamp: BigInt!
+  pauseDuration: BigInt!
+  pauseResumeTime: BigInt!
+  proposedAmount: String!
 }
 
 type LogPaymentMade @entity(immutable: true) {
@@ -18,19 +47,27 @@ type LogPaymentMade @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type VotingInfo @entity(immutable: true) {
+type VotingInfo @entity {
   id: Bytes!
   votingEnabled: Boolean!
   openParticipation: Boolean!
   refundOnVotedYes: Boolean!
   refundOnVotedNo: Boolean!
   votingConcluded: Boolean!
-  duration: BigInt!
+  duration: Int!
   votingStartTimestamp: BigInt!
   minContribution: String!
 }
 
-type LogProposalPactCreated @entity(immutable: true) {
+type UserInteractionData @entity {
+  id: Bytes!
+  canVote: Boolean!
+  hasVoted: Boolean!
+  castedVote: Boolean!
+  contribution: String!
+}
+
+type LogProposalPactCreated @entity {
   id: Bytes!
   creator: Bytes!
   uid: Bytes!
@@ -40,7 +77,11 @@ type LogProposalPactCreated @entity(immutable: true) {
   yesVotes: BigInt!
   noVotes: BigInt!
   votingInfo: VotingInfo!
+  voters: [Bytes!]!
+  yesBeneficiaries: [Bytes!]!
+  noBeneficiaries: [Bytes!]!
   isEditable: Boolean!
+  userInteractionData: [UserInteractionData!]!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
