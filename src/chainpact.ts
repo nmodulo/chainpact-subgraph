@@ -1,13 +1,13 @@
 import {
-  CreatePactCall,
   GigPact,
   LogPactCreated as LogPactCreatedEvent,
   LogPaymentMade as LogPaymentMadeEvent,
   LogStateUpdate as LogStateUpdateEvent,
-  SignPactCall
 } from "../generated/gigpact/GigPact"
-import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent, logvotingConcluded as LogvotingConcludedEvent, logContribution as LogContributionEvent, logAmountOut as LogAmountOutEvent, SetTextCall } from "../generated/proposalpact/ProposalPact"
-import { DisputeData, GigPactEntity, TransactionEntity, LogPaymentMade, LogProposalPactCreated, PayData, UserInteractionData, VotingInfo } from "../generated/schema"
+import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent, logvotingConcluded as LogvotingConcludedEvent, logContribution as LogContributionEvent, logAmountOut as LogAmountOutEvent } from "../generated/proposalpact/ProposalPact"
+import { DisputeData, GigPactEntity, 
+  // TransactionEntity,
+   LogPaymentMade, LogProposalPactCreated, PayData, UserInteractionData, VotingInfo } from "../generated/schema"
 import { Address, Bytes, Entity, log } from '@graphprotocol/graph-ts'
 
 
@@ -17,7 +17,7 @@ export function handleLogPactCreated(event: LogPactCreatedEvent): void {
   )
   let disputeDataEntity = new DisputeData(event.params.pactid)
   let payData = new PayData(event.params.pactid)
-  let transactionEntity = new TransactionEntity(event.transaction.hash.concat(event.params.creator))
+  // let transactionEntity = new TransactionEntity(event.transaction.hash.concat(event.params.creator))
   let contract = GigPact.bind(event.address)
   let pactData = contract.pactData(event.params.pactid)
   let payDataFromChain = contract.payData(event.params.pactid)
@@ -40,12 +40,12 @@ export function handleLogPactCreated(event: LogPactCreatedEvent): void {
   payData.lastPayAmount = payDataFromChain.getLastPayAmount().toString()
   payData.proposedAmount = payDataFromChain.getProposedAmount().toString()
 
-  transactionEntity.action = 0
-  transactionEntity.pactType = 0
-  transactionEntity.pactId = event.params.pactid
-  transactionEntity.gasFees = event.transaction.gasPrice.toString()
-  transactionEntity.transactionHash = event.transaction.hash
-  transactionEntity.blockTimestamp = event.block.timestamp
+  // transactionEntity.action = 0
+  // transactionEntity.pactType = 0
+  // transactionEntity.pactId = event.params.pactid
+  // transactionEntity.gasFees = event.transaction.gasPrice.toString()
+  // transactionEntity.transactionHash = event.transaction.hash
+  // transactionEntity.blockTimestamp = event.block.timestamp
 
   entity.creator = event.params.creator
   entity.employer = pactData.getEmployer()
@@ -68,7 +68,7 @@ export function handleLogPactCreated(event: LogPactCreatedEvent): void {
 
   disputeDataEntity.save()
   payData.save()
-  transactionEntity.save()
+  // transactionEntity.save()
   entity.save()
 }
 
@@ -76,6 +76,15 @@ export function handleLogPaymentMade(event: LogPaymentMadeEvent): void {
   let entity = new LogPaymentMade(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
+  // let transactionEntity = new TransactionEntity(event.transaction.hash.concat(event.params.payer))
+
+  // transactionEntity.action = 9
+  // transactionEntity.blockTimestamp = event.block.timestamp
+  // transactionEntity.gasFees = event.transaction.gasPrice.toString()
+  // transactionEntity.pactId = event.params.pactid
+  // transactionEntity.pactType = 0
+  // transactionEntity.transactionHash = event.transaction.hash
+
   entity.payer = event.params.payer
   entity.pactId = event.params.pactid
   entity.value = event.params.value
@@ -84,6 +93,7 @@ export function handleLogPaymentMade(event: LogPaymentMadeEvent): void {
   entity.blockTimestamp = event.block.timestamp
   entity.transactionHash = event.transaction.hash
 
+  // transactionEntity.save()
   entity.save()
 }
 
@@ -93,18 +103,18 @@ export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
 
   entity.pactState = event.params.newState
 
-  if (event.params.newState === 1) {
-    let transactionEntity = new TransactionEntity(event.transaction.hash.concat(event.params.pactid))
+  // if (event.params.newState === 1) {
+  //   let transactionEntity = new TransactionEntity(event.transaction.hash.concat(event.params.pactid))
 
-    transactionEntity.action = 3
-    transactionEntity.blockTimestamp = event.block.timestamp
-    transactionEntity.gasFees = event.transaction.gasPrice.toString()
-    transactionEntity.pactId = event.params.pactid
-    transactionEntity.pactType = 0
-    transactionEntity.transactionHash = event.transaction.hash
+  //   transactionEntity.action = 3
+  //   transactionEntity.blockTimestamp = event.block.timestamp
+  //   transactionEntity.gasFees = event.transaction.gasPrice.toString()
+  //   transactionEntity.pactId = event.params.pactid
+  //   transactionEntity.pactType = 0
+  //   transactionEntity.transactionHash = event.transaction.hash
 
-    transactionEntity.save()
-  } 
+  //   transactionEntity.save()
+  // } 
   // else if (event.params.newState === )
 
   entity.save()
@@ -247,32 +257,74 @@ export function handleLogAmountOut(event: LogAmountOutEvent): void {
 }
 
 // call handlers for gig pact
-export function handleSignPact(call: SignPactCall): void {
-  let entity = new TransactionEntity(call.transaction.hash.concat(call.inputs.pactid))
-  let gigPact = GigPactEntity.load(call.inputs.pactid)
+// export function handleSignPact(call: SignPactCall): void {
+  // let entity = new TransactionEntity(call.transaction.hash.concat(call.inputs.pactid))
+  // let gigPact = GigPactEntity.load(call.inputs.pactid)
 
-  if (!entity || !gigPact) return
+  // if (!gigPact) return
 
-  if (gigPact.employer == call.from) {
-    entity.action = 1
-  } else {
-    entity.action = 2
-  }
-  entity.blockTimestamp = call.block.timestamp
-  entity.pactType = 0
-  entity.pactId = call.inputs.pactid
-  entity.gasFees = call.transaction.gasPrice.toString()
-  entity.transactionHash = call.transaction.hash
+  // if (gigPact.employer == call.from) {
+  //   entity.action = 1
+  // } else {
+  //   entity.action = 2
+  // }
+  // entity.blockTimestamp = call.block.timestamp
+  // entity.pactType = 0
+  // entity.pactId = call.inputs.pactid
+  // entity.gasFees = call.transaction.gasPrice.toString()
+  // entity.transactionHash = call.transaction.hash
 
-  entity.save()
-}
+  // entity.save()
+// }
+
+// export function handleDelegatePact(call: DelegatePactCall): void {
+//   let entity = new TransactionEntity(call.transaction.hash.concat(call.inputs.pactid))
+
+//   if (call.inputs.addOrRevoke) {
+//     entity.action = 4
+//   } else {
+//     entity.action = 5
+//   }
+//   entity.blockTimestamp = call.block.timestamp
+//   entity.pactType = 0
+//   entity.pactId = call.inputs.pactid
+//   entity.gasFees = call.transaction.gasPrice.toString()
+//   entity.transactionHash = call.transaction.hash
+
+//   entity.save()
+// }
+
+// export function handleStartPause(call: StartPauseCall, _address: Address): void {
+//   let entity = new TransactionEntity(call.transaction.hash.concat(call.inputs.pactid))
+//   let contract = GigPact.bind(_address)
+//   let pactData = contract.pactData(call.inputs.pactid)
+//   let currentState = pactData.getPactState()
+
+//   if (call.inputs.toStart) {
+//     if (currentState === 4) {
+//       entity.action = 6
+//     } else if (currentState === 6) {
+//       entity.action = 8
+//     }
+//   } else {
+//     entity.action = 7
+//   }
+
+//   entity.blockTimestamp = call.block.timestamp
+//   entity.pactType = 0
+//   entity.pactId = call.inputs.pactid
+//   entity.gasFees = call.transaction.gasPrice.toString()
+//   entity.transactionHash = call.transaction.hash
+
+//   entity.save()
+// }
 
 // call handlers for proposal pact
-export function handleSetText(call: SetTextCall): void {
-  let proposalPactEntity = LogProposalPactCreated.load(call.inputs.pactid)
-  if (!proposalPactEntity) return
+// export function handleSetText(call: SetTextCall): void {
+//   let proposalPactEntity = LogProposalPactCreated.load(call.inputs.pactid)
+//   if (!proposalPactEntity) return
 
-  proposalPactEntity.pactText = call.inputs.pactText_
+//   proposalPactEntity.pactText = call.inputs.pactText_
 
-  proposalPactEntity.save()
-}
+//   proposalPactEntity.save()
+// }
