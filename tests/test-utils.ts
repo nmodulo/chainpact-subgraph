@@ -61,6 +61,7 @@ export function createLogPactCreatedEvent(
 ): LogPactCreatedEvent {
   let pactCreatedEvent = changetype<LogPactCreatedEvent>(newMockEvent())
   pactCreatedEvent.parameters = new Array()
+  pactCreatedEvent.transaction.input = Bytes.fromHexString("0x919DC4e0cDd285dCa78b638F3aE7be5a30014a97")
   pactCreatedEvent.parameters.push(
     new ethereum.EventParam(
       "creator",

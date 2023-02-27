@@ -2,6 +2,7 @@
 type GigPactEntity @entity {
   id: Bytes!
   creator: Bytes!
+  created: BigInt!
   employer: Bytes!
   employee: Bytes!
   payAmount: String!
@@ -9,7 +10,9 @@ type GigPactEntity @entity {
   pactPayScheduleDays: BigInt!
   pactName: String!
   employeeSignedDate: BigInt
+  employerSignedDate: BigInt
   pactId: Bytes!
+  inputData: Bytes!
   documentHash: Bytes
   disputeData: DisputeData!
   payData: PayData!
@@ -76,7 +79,7 @@ type UserInteractionData @entity {
   contribution: String!
 }
 
-type LogProposalPactCreated @entity {
+type ProposalPactEntity @entity {
   id: Bytes!
   creator: Bytes!
   uid: Bytes!

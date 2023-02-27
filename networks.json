@@ -11,32 +11,32 @@
   },
   "fuji": {
     "gigpact": {
-      "address": "0xa4ce7b4024CD0D863823FB7Cd3849e8Aacbd5f97",
-      "startBlock": 18258496
+      "address": "0x477b656FE6901366657D507202E471A9b36eDa97",
+      "startBlock": 19217582
     },
     "proposalpact": {
-      "address": "0x1d5FaD56f591772dc639Bcb97d8d8Da1C1d716c1",
-      "startBlock": 17251372
+      "address": "0x6443b62565b28231494209aA4ECeB6bd650Dd35d",
+      "startBlock": 19217481
     }
   },
   "mumbai": {
     "gigpact": {
-      "address": "0xa9Fbe5372669b6297A367D7f799063c10c141b0B",
-      "startBlock": 31545877
+      "address": "0x36BA5A1509979B4c7b025d810d8CaBA07857654c",
+      "startBlock": 32334929
     },
     "proposalpact": {
-      "address": "0x2f6c844213c9a638C6eFC974b13aceCb001eea2a",
-      "startBlock": 31546197
+      "address": "0xB2882c8F33201cC161d0Bf09e65f16E4cf8ce492",
+      "startBlock": 32334896
     }
   },
   "chapel": {
     "gigpact": {
-      "address": "0xa9Fbe5372669b6297A367D7f799063c10c141b0B",
-      "startBlock": 26975115
+      "address": "0x36BA5A1509979B4c7b025d810d8CaBA07857654c",
+      "startBlock": 27493781
     },
     "proposalpact": {
-      "address": "0x2f6c844213c9a638C6eFC974b13aceCb001eea2a",
-      "startBlock": 26975154
+      "address": "0xB2882c8F33201cC161d0Bf09e65f16E4cf8ce492",
+      "startBlock": 27493746
     }
   }
 }
