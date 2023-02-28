@@ -57,8 +57,8 @@ export function handleLogPactCreated(event: LogPactCreatedEvent): void {
   entity.erc20TokenAddress = pactData.getErc20TokenAddress()
   entity.pactPayScheduleDays = pactData.getPayScheduleDays()
   entity.pactName = pactData.getPactName().toString()
-  // entity.employeeSignedDate = pactData.getEmployeeSignDate()
-  // entity.employerSignedDate = BigInt.fromI32(0)
+  entity.employeeSignedDate = pactData.getEmployeeSignDate()
+  entity.employerSignedDate = BigInt.fromI32(0)
   entity.pactId = event.params.pactid
   entity.disputeData = disputeDataEntity.id
   entity.payData = payData.id
@@ -114,6 +114,13 @@ export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
     entity.employeeSignedDate = event.block.timestamp
   } else if (event.params.newState === PactState.EMPLOYER_SIGNED) {
     entity.employerSignedDate = event.block.timestamp
+  } else if (event.params.newState === PactState.ALL_SIGNED) {
+    if (event.params.updater.toString().toLowerCase() === pactData.getEmployee().toString().toLowerCase()) {
+      entity.employeeSignedDate = event.block.timestamp
+    } else {
+      entity.employerSignedDate = event.block.timestamp
+    }
+    // entity.employeeSignedDate = event.block.timestamp
   }
 
   // if (event.params.newState === 1) {
@@ -133,10 +140,10 @@ export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
   entity.save()
 }
 
-export function handleGigPactLogPactAction(event: LogPactActionEvent) {
-  let gigPactEntity = GigPactEntity.load(event.params.pactid)
+export function handleGigPactLogPactAction(event: LogPactActionEvent): void {
+  // let gigPactEntity = GigPactEntity.load(event.params.pactid)
 
-  if (!gigPactEntity) return
+  // if (!gigPactEntity) return
 
 }
 
@@ -276,7 +283,7 @@ export function handleLogAmountOut(event: LogAmountOutEvent): void {
   proposalPactEntity.save()
 }
 
-export function handleProposalPactLogPactAction(event: ProposalPactActionEvent) {
+export function handleProposalPactLogPactAction(event: ProposalPactActionEvent): void {
   let proposalPactEntity = ProposalPactEntity.load(event.params.uid)
 
   if (!proposalPactEntity) return
