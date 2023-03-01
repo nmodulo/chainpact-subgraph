@@ -9,7 +9,7 @@ import { ProposalPact, LogPactCreated as LogProposalPactCreatedEvent, LogvotingC
 import { DisputeData, GigPactEntity, 
   // TransactionEntity,
    LogPaymentMade, ProposalPactEntity, PayData, UserInteractionData, VotingInfo } from "../generated/schema"
-import { Address, BigInt, Bytes, Entity, log } from '@graphprotocol/graph-ts'
+import { Address, BigInt, Bytes, Entity, ethereum, log } from '@graphprotocol/graph-ts'
 import {PactState} from "./types"
 
 export function handleLogPactCreated(event: LogPactCreatedEvent): void {
@@ -285,20 +285,35 @@ export function handleLogAmountOut(event: LogAmountOutEvent): void {
 
 export function handleProposalPactLogPactAction(event: ProposalPactActionEvent): void {
   let proposalPactEntity = ProposalPactEntity.load(event.params.uid)
+  // let contract = ProposalPact.bind(event.address)
+  // let pactInfoFromChain = contract.pacts(event.params.uid)
 
   if (!proposalPactEntity) return
 
-  const functionSignature = event.transaction.input.slice(0, 10).toString()
+  const functionSignature = event.transaction.input.toHexString().slice(0, 10);
+  const inputDataHexString = event.transaction.input.toHexString().slice(10);
+
+  // log.info("🚀🚀 The transaction.input value 0xff8594fc {}", [functionSignature])
 
   if (functionSignature === "0x1774931e") {
     // postpone voting window
-  } else if (functionSignature === "0xeaf72c59") {
+  } else if (functionSignature == "0xeaf72c59") {
     // voting action
-  } else if (functionSignature === "0x028669f9") {
+  } else if (functionSignature == "0x028669f9") {
     // conclude voting
-  } else if (functionSignature === "0xff8594fc") {
+    let decoded = ethereum.decode('(bytes32)', event.transaction.input);
+    log.debug("🚀 The decoded value {}", [decoded ? decoded.toString()  : "yoo"]);
+  } else if (functionSignature == "0xff8594fc") {
     // set text
+    const hexStringToDecode = '0x0000000000000000000000000000000000000000000000000000000000000020' + inputDataHexString;
+    const dataToDecode = Bytes.fromByteArray(Bytes.fromHexString(hexStringToDecode));
+    let decoded = ethereum.decode('(bytes32,string)', dataToDecode);
+    if (!decoded) return
+
+    proposalPactEntity.pactText = decoded.toTuple()[1].toString()
   }
+
+  proposalPactEntity.save()
 }
 
 // call handlers for gig pact

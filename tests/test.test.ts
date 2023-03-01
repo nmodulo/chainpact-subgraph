@@ -10,8 +10,8 @@ import {
 import { Address, Bytes, ethereum, log } from "@graphprotocol/graph-ts"
 // import { AdminChanged } from "../generated/schema"
 // import { AdminChanged as AdminChangedEvent } from "../generated/test/test"
-import { handleLogPactCreated } from "../src/chainpact"
-import { createLogPactCreatedEvent } from "./test-utils"
+import { handleLogPactCreated, handleProposalPactLogPactAction } from "../src/chainpact"
+import { createLogPactCreatedEvent, createPactTextEditedvent } from "./test-utils"
 import {ProposalPact} from "../generated/proposalpact/ProposalPact"
 
 // Tests structure (matchstick-as >=0.5.0)
@@ -57,23 +57,41 @@ import {ProposalPact} from "../generated/proposalpact/ProposalPact"
     // https://thegraph.com/docs/en/developer/matchstick/#asserts
   // })
 // })
-describe("Entity checkup for GigPact", () => {
+// describe("Entity checkup for GigPact", () => {
+//   beforeAll(() => {
+//     let creator = Address.fromString(
+//       "0x0000000000000000000000000000000000000001"
+//     )
+//     let pactId = Bytes.fromHexString(
+//       "0x7ccab383b928eeaec5fd48c295eac05c2e9ace2073bc0d9b94c893e0c4c1ebd8"
+//     )
+//     let newPactCreatedEvent = createLogPactCreatedEvent(creator, pactId)
+//     handleLogPactCreated(newPactCreatedEvent)
+//   })
+
+//   afterAll(() => {
+//     clearStore()
+//   })
+
+//   test("LogPactCreated created and stored", () => {
+//     // assert.entityCount("LogPactCreated", 0)
+//   })
+// })
+
+describe("Test checkup for Proposalpoact text edit", () => {
   beforeAll(() => {
-    let creator = Address.fromString(
-      "0x0000000000000000000000000000000000000001"
-    )
     let pactId = Bytes.fromHexString(
-      "0x7ccab383b928eeaec5fd48c295eac05c2e9ace2073bc0d9b94c893e0c4c1ebd8"
+      "0f569ccdc24a51587b707f02d4579cd3abd0b74a21cb9e2335833b7e6ba0bc96"
     )
-    let newPactCreatedEvent = createLogPactCreatedEvent(creator, pactId)
-    handleLogPactCreated(newPactCreatedEvent)
+    let newPactCreatedEvent = createPactTextEditedvent(pactId)
+    handleProposalPactLogPactAction(newPactCreatedEvent)
   })
 
   afterAll(() => {
     clearStore()
   })
 
-  test("LogPactCreated created and stored", () => {
+  test("Proposalpact text edited successfully", () => {
     // assert.entityCount("LogPactCreated", 0)
   })
 })
