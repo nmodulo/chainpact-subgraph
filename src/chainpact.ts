@@ -285,24 +285,29 @@ export function handleLogAmountOut(event: LogAmountOutEvent): void {
 
 export function handleProposalPactLogPactAction(event: ProposalPactActionEvent): void {
   let proposalPactEntity = ProposalPactEntity.load(event.params.uid)
+  let votingInfoEntity = VotingInfo.load(event.params.uid)
   // let contract = ProposalPact.bind(event.address)
   // let pactInfoFromChain = contract.pacts(event.params.uid)
 
-  if (!proposalPactEntity) return
+  if (!proposalPactEntity || !votingInfoEntity) return
 
   const functionSignature = event.transaction.input.toHexString().slice(0, 10);
   const inputDataHexString = event.transaction.input.toHexString().slice(10);
 
-  // log.info("🚀🚀 The transaction.input value 0xff8594fc {}", [functionSignature])
+  // log.info("🚀🚀 The transaction.input value 0x028669f9 {}", [functionSignature])
 
   if (functionSignature === "0x1774931e") {
     // postpone voting window
+    votingInfoEntity.votingStartTimestamp = votingInfoEntity.votingStartTimestamp.plus(BigInt.fromI64(24 * 60 * 60))
+    votingInfoEntity.save()
   } else if (functionSignature == "0xeaf72c59") {
     // voting action
+
   } else if (functionSignature == "0x028669f9") {
     // conclude voting
-    let decoded = ethereum.decode('(bytes32)', event.transaction.input);
-    log.debug("🚀 The decoded value {}", [decoded ? decoded.toString()  : "yoo"]);
+    votingInfoEntity.votingConcluded = true
+    votingInfoEntity.save()
+    proposalPactEntity.votingInfo = votingInfoEntity.id
   } else if (functionSignature == "0xff8594fc") {
     // set text
     const hexStringToDecode = '0x0000000000000000000000000000000000000000000000000000000000000020' + inputDataHexString;

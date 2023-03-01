@@ -83,7 +83,7 @@ export function createPactTextEditedvent(
 ): ProposalPactActionEvent {
   let pactCreatedEvent = changetype<ProposalPactActionEvent>(newMockEvent())
   pactCreatedEvent.parameters = new Array()
-  pactCreatedEvent.transaction.input = Bytes.fromHexString("0xff8594fc0f569ccdc24a51587b707f02d4579cd3abd0b74a21cb9e2335833b7e6ba0bc960000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000e7465737420706f7374706f6e6520000000000000000000000000000000000000")
+  pactCreatedEvent.transaction.input = Bytes.fromHexString("0xeaf72c59fcf73078cd0434cf331ed429645469f153531d83c6ccc8b1679df894eb495df5")
   pactCreatedEvent.parameters.push(
     new ethereum.EventParam(
       "pactid",
