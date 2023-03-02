@@ -114,11 +114,13 @@ export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
     entity.employeeSignedDate = event.block.timestamp
   } else if (event.params.newState === PactState.EMPLOYER_SIGNED) {
     entity.employerSignedDate = event.block.timestamp
+    entity.stakeAmount = pactData.getStakeAmount().toString()
   } else if (event.params.newState === PactState.ALL_SIGNED) {
     if (event.params.updater.toString().toLowerCase() === pactData.getEmployee().toString().toLowerCase()) {
       entity.employeeSignedDate = event.block.timestamp
     } else {
       entity.employerSignedDate = event.block.timestamp
+      entity.stakeAmount = pactData.getStakeAmount().toString()
     }
     // entity.employeeSignedDate = event.block.timestamp
   }

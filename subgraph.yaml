@@ -55,5 +55,7 @@ dataSources:
         - event: LogPactAction(indexed bytes32)
           handler: handleProposalPactLogPactAction
         - event: LogContribution(indexed bytes32,address,uint256)
-          handler: handleContribution
+          handler: handleLogContribution
+        - event: LogAmountOut(indexed bytes32,indexed address,uint256)
+          handler: handleLogAmountOut
       file: ./src/chainpact.ts
