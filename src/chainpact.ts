@@ -321,6 +321,17 @@ export function handleProposalPactLogPactAction(event: ProposalPactActionEvent):
   proposalPactEntity.save()
 }
 
+export function handleContribution(event: LogContributionEvent): void  {
+  const entity = ProposalPactEntity.load(event.params.uid);
+  let contract = ProposalPact.bind(event.address)
+  let pactInfoFromChain = contract.pacts(event.params.uid)
+
+  if (!entity) return
+  entity.totalValue = pactInfoFromChain.getTotalValue().toString()
+
+  entity.save()
+}
+
 // call handlers for gig pact
 // export function handleSignPact(call: SignPactCall): void {
   // let entity = new TransactionEntity(call.transaction.hash.concat(call.inputs.pactid))

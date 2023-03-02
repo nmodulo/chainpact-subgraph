@@ -54,4 +54,6 @@ dataSources:
           handler: handleLogProposalPactCreated
         - event: LogPactAction(indexed bytes32)
           handler: handleProposalPactLogPactAction
+        - event: LogContribution(indexed bytes32,address,uint256)
+          handler: handleContribution
       file: ./src/chainpact.ts
