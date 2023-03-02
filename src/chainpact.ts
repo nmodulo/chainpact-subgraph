@@ -294,12 +294,14 @@ export function handleLogAmountOut(event: LogAmountOutEvent): void {
 
 export function handleProposalPactLogPactAction(event: ProposalPactActionEvent): void {
   let proposalPactEntity = ProposalPactEntity.load(event.params.uid)
-  let votingInfoEntity = VotingInfo.load(event.params.uid)
   let contract = ProposalPact.bind(event.address)
+  let UserInteractionDataEntity = UserInteractionData.load(event.params.uid.concat(event.transaction.from))
   let pactInfoFromChain = contract.pacts(event.params.uid)
   let votingInfoFromChain = contract.votingInfo(event.params.uid)
-
-  if (!proposalPactEntity || !votingInfoEntity) return
+  
+  if (!proposalPactEntity) return
+  let votingInfoEntity = VotingInfo.load(proposalPactEntity.votingInfo)
+  if (!votingInfoEntity) return
 
   const functionSignature = event.transaction.input.toHexString().slice(0, 10);
   const inputDataHexString = event.transaction.input.toHexString().slice(10);
@@ -311,9 +313,13 @@ export function handleProposalPactLogPactAction(event: ProposalPactActionEvent):
     votingInfoEntity.votingStartTimestamp = votingInfoFromChain.getVotingStartTimestamp()
     votingInfoEntity.save()
     proposalPactEntity.votingInfo = votingInfoEntity.id
-  } else if (functionSignature == "0xeaf72c59") {
+  } else if (functionSignature == "0x0fee5347") {
     // voting action
-
+    if (inputDataHexString.substr(-1) == "1") {
+      proposalPactEntity.yesVotes = proposalPactEntity.yesVotes.plus(BigInt.fromI32(1))
+    } else {
+      proposalPactEntity.noVotes = proposalPactEntity.noVotes.plus(BigInt.fromI32(1))
+    }
   } else if (functionSignature == "0x028669f9") {
     // conclude voting
     votingInfoEntity.votingConcluded = true
@@ -342,76 +348,3 @@ export function handleContribution(event: LogContributionEvent): void  {
 
   entity.save()
 }
-
-// call handlers for gig pact
-// export function handleSignPact(call: SignPactCall): void {
-  // let entity = new TransactionEntity(call.transaction.hash.concat(call.inputs.pactid))
-  // let gigPact = GigPactEntity.load(call.inputs.pactid)
-
-  // if (!gigPact) return
-
-  // if (gigPact.employer == call.from) {
-  //   entity.action = 1
-  // } else {
-  //   entity.action = 2
-  // }
-  // entity.blockTimestamp = call.block.timestamp
-  // entity.pactType = 0
-  // entity.pactId = call.inputs.pactid
-  // entity.gasFees = call.transaction.gasPrice.toString()
-  // entity.transactionHash = call.transaction.hash
-
-  // entity.save()
-// }
-
-// export function handleDelegatePact(call: DelegatePactCall): void {
-//   let entity = new TransactionEntity(call.transaction.hash.concat(call.inputs.pactid))
-
-//   if (call.inputs.addOrRevoke) {
-//     entity.action = 4
-//   } else {
-//     entity.action = 5
-//   }
-//   entity.blockTimestamp = call.block.timestamp
-//   entity.pactType = 0
-//   entity.pactId = call.inputs.pactid
-//   entity.gasFees = call.transaction.gasPrice.toString()
-//   entity.transactionHash = call.transaction.hash
-
-//   entity.save()
-// }
-
-// export function handleStartPause(call: StartPauseCall, _address: Address): void {
-//   let entity = new TransactionEntity(call.transaction.hash.concat(call.inputs.pactid))
-//   let contract = GigPact.bind(_address)
-//   let pactData = contract.pactData(call.inputs.pactid)
-//   let currentState = pactData.getPactState()
-
-//   if (call.inputs.toStart) {
-//     if (currentState === 4) {
-//       entity.action = 6
-//     } else if (currentState === 6) {
-//       entity.action = 8
-//     }
-//   } else {
-//     entity.action = 7
-//   }
-
-//   entity.blockTimestamp = call.block.timestamp
-//   entity.pactType = 0
-//   entity.pactId = call.inputs.pactid
-//   entity.gasFees = call.transaction.gasPrice.toString()
-//   entity.transactionHash = call.transaction.hash
-
-//   entity.save()
-// }
-
-// call handlers for proposal pact
-// export function handleSetText(call: SetTextCall): void {
-//   let proposalPactEntity = ProposalPactEntity.load(call.inputs.pactid)
-//   if (!proposalPactEntity) return
-
-//   proposalPactEntity.pactText = call.inputs.pactText_
-
-//   proposalPactEntity.save()
-// }
