@@ -11,6 +11,7 @@ type GigPactEntity @entity {
   pactName: String!
   employeeSignedDate: BigInt
   employerSignedDate: BigInt
+  pactStartedDate: BigInt
   pactId: Bytes!
   inputData: Bytes!
   documentHash: Bytes

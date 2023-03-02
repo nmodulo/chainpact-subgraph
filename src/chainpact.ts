@@ -112,10 +112,13 @@ export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
 
   if (event.params.newState === PactState.EMPLOYEE_SIGNED) {
     entity.employeeSignedDate = event.block.timestamp
+    entity.pactState = PactState.EMPLOYEE_SIGNED
   } else if (event.params.newState === PactState.EMPLOYER_SIGNED) {
     entity.employerSignedDate = event.block.timestamp
     entity.stakeAmount = pactData.getStakeAmount().toString()
+    entity.pactState = PactState.EMPLOYER_SIGNED
   } else if (event.params.newState === PactState.ALL_SIGNED) {
+    entity.pactState = PactState.ALL_SIGNED
     if (event.params.updater.toString().toLowerCase() === pactData.getEmployee().toString().toLowerCase()) {
       entity.employeeSignedDate = event.block.timestamp
     } else {
@@ -123,6 +126,10 @@ export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
       entity.stakeAmount = pactData.getStakeAmount().toString()
     }
     // entity.employeeSignedDate = event.block.timestamp
+  } else if (event.params.newState === PactState.ACTIVE) {
+    if (entity.pactState === PactState.ALL_SIGNED) {
+      entity.pactStartedDate = event.block.timestamp
+    }
   }
 
   // if (event.params.newState === 1) {
