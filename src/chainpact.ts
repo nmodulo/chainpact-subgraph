@@ -295,8 +295,9 @@ export function handleLogAmountOut(event: LogAmountOutEvent): void {
 export function handleProposalPactLogPactAction(event: ProposalPactActionEvent): void {
   let proposalPactEntity = ProposalPactEntity.load(event.params.uid)
   let votingInfoEntity = VotingInfo.load(event.params.uid)
-  // let contract = ProposalPact.bind(event.address)
-  // let pactInfoFromChain = contract.pacts(event.params.uid)
+  let contract = ProposalPact.bind(event.address)
+  let pactInfoFromChain = contract.pacts(event.params.uid)
+  let votingInfoFromChain = contract.votingInfo(event.params.uid)
 
   if (!proposalPactEntity || !votingInfoEntity) return
 
@@ -307,8 +308,9 @@ export function handleProposalPactLogPactAction(event: ProposalPactActionEvent):
 
   if (functionSignature === "0x1774931e") {
     // postpone voting window
-    votingInfoEntity.votingStartTimestamp = votingInfoEntity.votingStartTimestamp.plus(BigInt.fromI64(24 * 60 * 60))
+    votingInfoEntity.votingStartTimestamp = votingInfoFromChain.getVotingStartTimestamp()
     votingInfoEntity.save()
+    proposalPactEntity.votingInfo = votingInfoEntity.id
   } else if (functionSignature == "0xeaf72c59") {
     // voting action
 
