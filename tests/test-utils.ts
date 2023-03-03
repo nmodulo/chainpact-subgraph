@@ -5,7 +5,7 @@ import {
   LogPactCreated as LogPactCreatedEvent,
   LogPaymentMade as LogPaymentMadeEventpactCreatedEvent
 } from "../generated/gigpact/GigPact"
-import { ProposalPact, logPactCreated as LogProposalPactCreatedEvent } from "../generated/proposalpact/ProposalPact"
+import { ProposalPact, LogPactCreated as LogProposalPactCreatedEvent, LogPactAction as ProposalPactActionEvent } from "../generated/proposalpact/ProposalPact"
 
 // export function createAdminChangedEvent(
 //   previousAdmin: Address,
@@ -61,12 +61,29 @@ export function createLogPactCreatedEvent(
 ): LogPactCreatedEvent {
   let pactCreatedEvent = changetype<LogPactCreatedEvent>(newMockEvent())
   pactCreatedEvent.parameters = new Array()
+  pactCreatedEvent.transaction.input = Bytes.fromHexString("0x919DC4e0cDd285dCa78b638F3aE7be5a30014a97")
   pactCreatedEvent.parameters.push(
     new ethereum.EventParam(
       "creator",
       ethereum.Value.fromAddress(creator)
     )
   )
+  pactCreatedEvent.parameters.push(
+    new ethereum.EventParam(
+      "pactid",
+      ethereum.Value.fromBytes(pactId)
+    )
+  )
+
+  return pactCreatedEvent
+}
+
+export function createPactTextEditedvent(
+  pactId: Bytes
+): ProposalPactActionEvent {
+  let pactCreatedEvent = changetype<ProposalPactActionEvent>(newMockEvent())
+  pactCreatedEvent.parameters = new Array()
+  pactCreatedEvent.transaction.input = Bytes.fromHexString("0xeaf72c59fcf73078cd0434cf331ed429645469f153531d83c6ccc8b1679df894eb495df5")
   pactCreatedEvent.parameters.push(
     new ethereum.EventParam(
       "pactid",

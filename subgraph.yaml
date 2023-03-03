@@ -4,11 +4,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: gigpact
-    network: goerli
+    network: mumbai
     source:
       abi: GigPact
-      address: "0xa9Fbe5372669b6297A367D7f799063c10c141b0B"
-      startBlock: 8399138
+      address: "0x36BA5A1509979B4c7b025d810d8CaBA07857654c"
+      startBlock: 32334929
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -16,6 +16,8 @@ dataSources:
       entities:
         - GigPactEntity
         - LogPaymentMade
+        - DisputeData
+        - PayData
       abis:
         - name: GigPact
           file: ./abis/GigPactUpgradeable.json
@@ -26,33 +28,34 @@ dataSources:
           handler: handleLogPaymentMade
         - event: LogStateUpdate(indexed bytes32,uint8,indexed address)
           handler: handleLogStateUpdate
+        - event: LogPactAction(indexed bytes32)
+          handler: handleGigPactLogPactAction
       file: ./src/chainpact.ts
   - kind: ethereum
     name: proposalpact
-    network: goerli
+    network: mumbai
     source:
       abi: ProposalPact
-      address: "0x2f6c844213c9a638C6eFC974b13aceCb001eea2a"
-      startBlock: 8399231
+      address: "0xB2882c8F33201cC161d0Bf09e65f16E4cf8ce492"
+      startBlock: 32334896
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - LogProposalPactCreated
+        - ProposalPactEntity
+        - VotingInfo
+        - UserInteractionData
       abis:
         - name: ProposalPact
           file: ./abis/ProposalPactUpgradeable.json
       eventHandlers:
-        - event: logPactCreated(indexed address,bytes32)
+        - event: LogPactCreated(indexed address,bytes32)
           handler: handleLogProposalPactCreated
-        - event: logvotingConcluded(bytes32)
-          handler: handleLogVotingConcluded
-        - event: logContribution(indexed bytes32,address,uint256)
+        - event: LogPactAction(indexed bytes32)
+          handler: handleProposalPactLogPactAction
+        - event: LogContribution(indexed bytes32,address,uint256)
           handler: handleLogContribution
-        - event: logAmountOut(indexed bytes32,indexed address,uint256)
+        - event: LogAmountOut(indexed bytes32,indexed address,uint256)
           handler: handleLogAmountOut
-      callHandlers:
-        - function: setText(bytes32,string)
-          handler: handleSetText
       file: ./src/chainpact.ts
