@@ -35,7 +35,7 @@ type GigPactEntity @entity {
 type DisputeData @entity {
   id: Bytes!
   arbitratorAccepted: Boolean!
-  arbitratorProposed: Boolean!
+  arbitratorProposedFlag: Boolean!
   arbitratorProposer: Bytes!
   proposedAmount: String!
   proposedArbitrators: [Bytes!]!

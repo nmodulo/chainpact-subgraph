@@ -3,3 +3,4 @@
 /generated
 /tests/.bin
 /tests/.latest.json
+.env

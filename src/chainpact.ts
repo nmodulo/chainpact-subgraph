@@ -28,7 +28,7 @@ export function handleLogPactCreated(event: LogPactCreatedEvent): void {
   
   disputeDataEntity.proposedAmount = payDataFromChain.getProposedAmount().toString()
   disputeDataEntity.arbitratorProposer = pactData.getArbitratorProposer()
-  disputeDataEntity.arbitratorProposed = pactData.getArbitratorProposed()
+  disputeDataEntity.arbitratorProposedFlag = pactData.getArbitratorProposedFlag()
   disputeDataEntity.arbitratorAccepted = pactData.getArbitratorAccepted()
   let proposedArbitrators:Bytes[] = []
   for (let i=0; i < arbitrators.length; i++) {
@@ -104,9 +104,17 @@ export function handleLogPaymentMade(event: LogPaymentMadeEvent): void {
 
 export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
   let entity = GigPactEntity.load( event.params.pactid )
+  let payDataEntity = PayData.load(event.params.pactid)
   let contract = GigPact.bind(event.address)
   let pactData = contract.pactData(event.params.pactid)
-  if (!entity) return
+  let payDataFromChain = contract.payData(event.params.pactid)
+  if (!entity || !payDataEntity) return
+
+  payDataEntity.pauseDuration = payDataFromChain.getPauseDuration()
+  payDataEntity.pauseResumeTime = payDataFromChain.getPauseResumeTime()
+  payDataEntity.lastPayTimeStamp = payDataFromChain.getLastPayTimeStamp()
+  payDataEntity.lastPayAmount = payDataFromChain.getLastPayAmount().toString()
+  payDataEntity.proposedAmount = payDataFromChain.getProposedAmount().toString()
 
   entity.pactState = event.params.newState
 
@@ -130,7 +138,10 @@ export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
     if (entity.pactState === PactState.ALL_SIGNED) {
       entity.pactStartedDate = event.block.timestamp
     }
+  } else if (event.params.newState === PactState.RESIGNED) {
+    
   }
+  
 
   // if (event.params.newState === 1) {
   //   let transactionEntity = new TransactionEntity(event.transaction.hash.concat(event.params.pactid))
@@ -146,6 +157,7 @@ export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
   // } 
   // else if (event.params.newState === )
 
+  payDataEntity.save()
   entity.save()
 }
 

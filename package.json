@@ -3,23 +3,26 @@
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
-    "auth": "graph auth --studio c3f136953fab33e3d3d992ae83b55b79",
+    "auth": "dotenv -- cross-var graph auth --studio %GRAPH_STUDIO_AUTH_KEY%",
     "build:goerli": "graph build --network goerli",
     "build:fuji": "graph build --network fuji",
     "build:mumbai": "graph build --network mumbai",
     "build:chapel": "graph build --network chapel",
-    "deploy:goerli": "graph deploy --node https://api.studio.thegraph.com/deploy/ --network goerli test-indexing-check-repeat",
-    "deploy:fuji": "graph deploy --node https://api.studio.thegraph.com/deploy/ --network fuji chaintest-avalanche-fuji",
-    "deploy:mumbai": "graph deploy --node https://api.studio.thegraph.com/deploy/ --network mumbai mumbai-repeat-test-chainpact",
-    "deploy:chapel": "graph deploy --node https://api.studio.thegraph.com/deploy/ --network chapel chaintest-bsc-testnet",
+    "deploy:goerli": "graph deploy --node https://api.studio.thegraph.com/deploy/ --network goerli chinpact-goerli",
+    "deploy:fuji": "graph deploy --node https://api.studio.thegraph.com/deploy/ --network fuji chainpact-fuji",
+    "deploy:mumbai": "graph deploy --node https://api.studio.thegraph.com/deploy/ --network mumbai chainpact-mumbai",
+    "deploy:chapel": "graph deploy --node https://api.studio.thegraph.com/deploy/ --network chapel chainpact-bruno",
     "create-local": "graph create --node http://localhost:8020/ chainpact",
     "remove-local": "graph remove --node http://localhost:8020/ chainpact",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 chainpact",
     "test": "RUST_BACKTRACE=full graph test"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.37.7",
-    "@graphprotocol/graph-ts": "0.29.1"
+    "@graphprotocol/graph-cli": "0.42.4",
+    "@graphprotocol/graph-ts": "0.29.1",
+    "cross-var": "^1.1.0",
+    "dotenv": "^16.0.3",
+    "dotenv-cli": "^7.1.0"
   },
   "devDependencies": {
     "matchstick-as": "^0.5.0"

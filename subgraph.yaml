@@ -7,7 +7,7 @@ dataSources:
     network: mumbai
     source:
       abi: GigPact
-      address: "0x36BA5A1509979B4c7b025d810d8CaBA07857654c"
+      address: "0xa4ce7b4024CD0D863823FB7Cd3849e8Aacbd5f97"
       startBlock: 32334929
     mapping:
       kind: ethereum/events
@@ -36,7 +36,7 @@ dataSources:
     network: mumbai
     source:
       abi: ProposalPact
-      address: "0xB2882c8F33201cC161d0Bf09e65f16E4cf8ce492"
+      address: "0xd1D7C00f3F4A0A4a5539694D1d80075d8d223A48"
       startBlock: 32334896
     mapping:
       kind: ethereum/events
