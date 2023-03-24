@@ -18,6 +18,7 @@ dataSources:
         - LogPaymentMade
         - DisputeData
         - PayData
+        - TransactionEntity
       abis:
         - name: GigPact
           file: ./abis/GigPactUpgradeable.json
@@ -30,7 +31,7 @@ dataSources:
           handler: handleLogStateUpdate
         - event: LogPactAction(indexed bytes32)
           handler: handleGigPactLogPactAction
-      file: ./src/chainpact.ts
+      file: ./src/gigPactHandlers.ts
   - kind: ethereum
     name: proposalpact
     network: mumbai
@@ -46,6 +47,7 @@ dataSources:
         - ProposalPactEntity
         - VotingInfo
         - UserInteractionData
+        - TransactionEntity
       abis:
         - name: ProposalPact
           file: ./abis/ProposalPactUpgradeable.json
@@ -58,4 +60,4 @@ dataSources:
           handler: handleLogContribution
         - event: LogAmountOut(indexed bytes32,indexed address,uint256)
           handler: handleLogAmountOut
-      file: ./src/chainpact.ts
+      file: ./src/proposalPactHanders.ts

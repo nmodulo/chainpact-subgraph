@@ -22,16 +22,21 @@ type GigPactEntity @entity {
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
+  employeeDelegates: [Bytes!]!
+  employerDelegates: [Bytes!]!
 }
-# type TransactionEntity @entity(immutable: true) {
-#   id: Bytes!
-#   action: Int!
-#   pactType: Int!
-#   pactId: Bytes!
-#   gasFees: String!
-#   transactionHash: Bytes!
-#   blockTimestamp: BigInt!
-# }
+
+type TransactionEntity @entity(immutable: true) {
+  id: Bytes!
+  action: Int!
+  pactType: Int!
+  pactId: Bytes!
+  gasPrice: String!
+  gasLimit: String!
+  transactionHash: Bytes!
+  blockTimestamp: BigInt!
+}
+
 type DisputeData @entity {
   id: Bytes!
   arbitratorAccepted: Boolean!
