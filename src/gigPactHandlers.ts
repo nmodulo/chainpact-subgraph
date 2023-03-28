@@ -19,18 +19,25 @@ export function addTransaction(
     event: ethereum.Event,
     pactType: number,
     pactId: Bytes,
-    action: TransactionType
+    action: TransactionType,
 ): void {
-    let transactionEntity = new TransactionEntity(
+    let transactionEntity = new TransactionEntity( 
         event.transaction.hash.concat(pactId)
     );
     transactionEntity.action = action;
-    transactionEntity.pactType = pactType as i32;
+    transactionEntity.pactType = pactType as u32;
     transactionEntity.pactId = pactId;
-    transactionEntity.gasLimit = event.transaction.gasLimit.toString();
+    let receipt = event.receipt
+    if(receipt){
+        transactionEntity.gasUsed =receipt.gasUsed.toString()
+    } else {
+        transactionEntity.gasUsed = "0"
+    }
+
     transactionEntity.gasPrice = event.transaction.gasPrice.toString();
     transactionEntity.blockTimestamp = event.block.timestamp;
     transactionEntity.transactionHash = event.transaction.hash
+    transactionEntity.from = event.transaction.from
     transactionEntity.save();
 }
 
@@ -75,6 +82,7 @@ export function handleLogPactCreated(event: LogPactCreatedEvent): void {
     entity.pactName = pactData.getPactName().toString();
     entity.employeeSignedDate = pactData.getEmployeeSignDate();
     entity.employerSignedDate = BigInt.fromI32(0);
+    entity.pactStartedDate = BigInt.fromI32(0);
     entity.pactId = event.params.pactid;
     entity.disputeData = disputeDataEntity.id;
     entity.payData = payData.id;
@@ -92,12 +100,11 @@ export function handleLogPactCreated(event: LogPactCreatedEvent): void {
         event,
         PactType.GIGPACT,
         event.params.pactid,
-        TransactionType.CREATE_GP
+        TransactionType.CREATE_GP,
     );
 
     disputeDataEntity.save();
     payData.save();
-    // transactionEntity.save()
     entity.save();
 }
 
@@ -136,6 +143,7 @@ export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
         .getProposedAmount()
         .toString();
 
+    let oldState = gigPactEntity.pactState
     gigPactEntity.stakeAmount = pactData.getStakeAmount().toString();
     let txType = TransactionType.EMPLOYEE_SIGN;
     if (event.params.newState === PactState.EMPLOYEE_SIGNED) {
@@ -145,7 +153,7 @@ export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
         txType = TransactionType.EMPLOYER_SIGN;
     } else if (event.params.newState === PactState.ALL_SIGNED) {
         //Check old state
-        if (gigPactEntity.pactState === PactState.EMPLOYER_SIGNED) {
+        if (oldState === PactState.EMPLOYER_SIGNED) {
             gigPactEntity.employeeSignedDate = event.block.timestamp;
         } else {
             gigPactEntity.employerSignedDate = event.block.timestamp;
@@ -153,11 +161,12 @@ export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
         }
         // entity.employeeSignedDate = event.block.timestamp
     } else if (event.params.newState === PactState.ACTIVE) {
-        if (gigPactEntity.pactState === PactState.ALL_SIGNED) {
+        if (oldState === PactState.ALL_SIGNED) {
             gigPactEntity.pactStartedDate = event.block.timestamp;
             txType = TransactionType.START;
+        } else {
+            txType = TransactionType.RESUME;
         }
-        txType = TransactionType.RESUME;
     } else if (event.params.newState === PactState.ARBITRATED) {
         let disputeDataEntity = DisputeData.load(event.params.pactid);
         if (!disputeDataEntity) return
@@ -167,6 +176,25 @@ export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
         disputeDataEntity.arbitratorProposer = pactData.getArbitratorProposer();
         disputeDataEntity.arbitratorProposedFlag = pactData.getArbitratorProposedFlag();
         disputeDataEntity.arbitratorAccepted = pactData.getArbitratorAccepted();
+    } else if( event.params.newState === PactState.RESIGNED){
+        txType = TransactionType.RESIGN
+    } else if(event.params.newState === PactState.TERMINATED){
+        txType = TransactionType.TERMINATE
+    } else if (event.params.newState === PactState.RETRACTED){
+        txType = TransactionType.RETRACT
+    } else if(event.params.newState === PactState.FNF_EMPLOYEE){
+        txType = TransactionType.FNF_EMPLOYEE
+    } else if(event.params.newState === PactState.FNF_EMPLOYER){
+        txType = TransactionType.FNF_EMPLOYER
+    } else if(event.params.newState === PactState.FNF_SETTLED){
+        txType = TransactionType.FNF_SETTLE
+    } else if(event.params.newState === PactState.ENDED){
+        txType = TransactionType.RECLAIM_STAKE
+    }  else {
+        gigPactEntity.pactState = event.params.newState;
+        payDataEntity.save();
+        gigPactEntity.save();
+        return
     }
     gigPactEntity.pactState = event.params.newState;
     addTransaction(event, PactType.GIGPACT, event.params.pactid, txType);
@@ -277,7 +305,7 @@ export function handleGigPactLogPactAction(event: LogPactActionEvent): void {
         disputeDataEntity.arbitratorAccepted = pactData.getArbitratorAccepted();
         let proposedArbitrators: Bytes[] = [];
         for (let i = 0; i < arbitrators.length; i++) {
-            proposedArbitrators.push(changetype<Bytes>(arbitrators[i]));
+            proposedArbitrators.push(changetype<Bytes>(arbitrators[i].addr));
         }
         disputeDataEntity.proposedArbitrators = proposedArbitrators;
 

@@ -56,5 +56,7 @@ export enum TransactionType {
     PP_PITCH_IN,
     CREATE_GP,
     APPROVE_TOKEN_ALLOWANCE,
-    PP_AMOUNT_OUT
+    PP_AMOUNT_OUT,
+    FNF_EMPLOYEE,
+    FNF_EMPLOYER,
 }

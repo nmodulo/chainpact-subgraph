@@ -32,9 +32,10 @@ type TransactionEntity @entity(immutable: true) {
   pactType: Int!
   pactId: Bytes!
   gasPrice: String!
-  gasLimit: String!
+  gasUsed: String!
   transactionHash: Bytes!
   blockTimestamp: BigInt!
+  from: Bytes!
 }
 
 type DisputeData @entity {
@@ -73,7 +74,7 @@ type VotingInfo @entity {
   refundOnVotedNo: Boolean!
   votingConcluded: Boolean!
   duration: Int!
-  votingStartTimestamp: BigInt!
+  votingStartTimestamp: Int!
   minContribution: String!
 }
 
@@ -83,6 +84,7 @@ type UserInteractionData @entity {
   hasVoted: Boolean!
   castedVote: Boolean!
   contribution: String!
+  pact: ProposalPactEntity!
 }
 
 type ProposalPactEntity @entity {
@@ -99,7 +101,7 @@ type ProposalPactEntity @entity {
   yesBeneficiaries: [Bytes!]!
   noBeneficiaries: [Bytes!]!
   isEditable: Boolean!
-  userInteractionData: [UserInteractionData!]!
+  userInteractionData: [UserInteractionData!]! @derivedFrom(field: "pact")
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!

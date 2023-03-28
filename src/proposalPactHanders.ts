@@ -29,20 +29,16 @@ export function handleLogProposalPactCreated(event: LogProposalPactCreatedEvent)
     entity.yesBeneficiaries = participantsInfoFromChain.getValue1().map<Bytes>((each: Bytes) => each)
     entity.noBeneficiaries = participantsInfoFromChain.getValue2().map<Bytes>((each: Bytes) => each)
 
-    const voters = participantsInfoFromChain.getValue0()
-    let userInteractionDatas: Bytes[] = []
+    // const voters = participantsInfoFromChain.getValue0()
+    // let userInteractionDatas: Bytes[] = []
 
-    for (let index = 0; index < voters.length; index++) {
-        userInteractionDatas.push(
-            loadUserInteractionData(event.address, event.params.uid, voters[index]).id
-        )
-    }
+    // for (let index = 0; index < voters.length; index++) {
+    //     userInteractionDatas.push(
+    //         loadUserInteractionData(event.address, event.params.uid, voters[index]).id
+    //     )
+    // }
 
-    entity.userInteractionData = userInteractionDatas
-
-    log.info("hey there 🚀 {}", ["pact data test!!!"])
-
-
+    // entity.userInteractionData = []
     entity.blockNumber = event.block.number
     entity.blockTimestamp = event.block.timestamp
     entity.transactionHash = event.transaction.hash
@@ -53,8 +49,6 @@ export function handleLogProposalPactCreated(event: LogProposalPactCreatedEvent)
         event.params.uid,
         TransactionType.CREATE_PROPOSAL_PACT
     );
-
-
     entity.save()
 }
 
@@ -69,7 +63,7 @@ export function loadVotingInfo(event: LogProposalPactCreatedEvent): VotingInfo {
     votingInfoEntity.refundOnVotedNo = votingInfoFromChain.getRefundOnVotedNo()
     votingInfoEntity.votingConcluded = votingInfoFromChain.getVotingConcluded()
     votingInfoEntity.duration = votingInfoFromChain.getDuration().toI32()
-    votingInfoEntity.votingStartTimestamp = votingInfoFromChain.getVotingStartTimestamp()
+    votingInfoEntity.votingStartTimestamp = votingInfoFromChain.getVotingStartTimestamp().toU32()
     votingInfoEntity.minContribution = votingInfoFromChain.getMinContribution().toString()
 
     votingInfoEntity.save()
@@ -122,15 +116,17 @@ export function handleLogContribution(event: LogContributionEvent): void {
     if (!userInteractionDataEntity) {
         userInteractionDataEntity = new UserInteractionData(event.params.uid.concat(event.params.payer))
     }
+    // proposalPactEntity.userInteractionData.push(userInteractionDataEntity.id)
+    // proposalPactEntity.userInteractionData.push(changetype<Bytes>("0x030f257f42a1bb6a60bc61c9a483837a180abdb00d580346666e2522ce1c5f0cbe1429d2d0683157bf10488051b7b40787c85300"))
 
     userInteractionDataEntity.canVote = userInteractionData.getCanVote()
     userInteractionDataEntity.hasVoted = userInteractionData.getHasVoted()
     userInteractionDataEntity.castedVote = userInteractionData.getCastedVote()
     userInteractionDataEntity.contribution = userInteractionData.getContribution().toString()
+    userInteractionDataEntity.pact = proposalPactEntity.id
+    userInteractionDataEntity.save()
 
     proposalPactEntity.totalValue = contract.pacts(event.params.uid).getTotalValue().toString()
-
-    userInteractionDataEntity.save()
     proposalPactEntity.save()
 
     addTransaction(
@@ -152,14 +148,17 @@ export function handleLogAmountOut(event: LogAmountOutEvent): void {
     if (!userInteractionDataEntity) {
         userInteractionDataEntity = new UserInteractionData(event.params.uid.concat(event.params.payee))
     }
-
+    
     userInteractionDataEntity.canVote = userInteractionData.getCanVote()
     userInteractionDataEntity.hasVoted = userInteractionData.getHasVoted()
     userInteractionDataEntity.castedVote = userInteractionData.getCastedVote()
     userInteractionDataEntity.contribution = userInteractionData.getContribution().toString()
+    userInteractionDataEntity.pact = proposalPactEntity.id
 
+    // proposalPactEntity.userInteractionData.push(userInteractionDataEntity.id)
+    // proposalPactEntity.userInteractionData.push(changetype<Bytes>("0x030f257f42a1bb6a60bc61c9a483837a180abdb00d580346666e2522ce1c5f0cbe1429d2d0683157bf10488051b7b40787c85300"))
     proposalPactEntity.totalValue = contract.pacts(event.params.uid).getTotalValue().toString()
-
+    
     userInteractionDataEntity.save()
     proposalPactEntity.save()
 
@@ -174,8 +173,8 @@ export function handleLogAmountOut(event: LogAmountOutEvent): void {
 export function handleProposalPactLogPactAction(event: ProposalPactActionEvent): void {
     let proposalPactEntity = ProposalPactEntity.load(event.params.uid)
     let contract = ProposalPact.bind(event.address)
-    let UserInteractionDataEntity = UserInteractionData.load(event.params.uid.concat(event.transaction.from))
-    let pactInfoFromChain = contract.pacts(event.params.uid)
+    // let UserInteractionDataEntity = UserInteractionData.load(event.params.uid.concat(event.transaction.from))
+    // let pactInfoFromChain = contract.pacts(event.params.uid)
     let votingInfoFromChain = contract.votingInfo(event.params.uid)
 
     if (!proposalPactEntity) return
@@ -189,7 +188,7 @@ export function handleProposalPactLogPactAction(event: ProposalPactActionEvent):
     let txType = TransactionType.POSTPONE_PP_VOTING
     if (functionSignature === "0x1774931e") {
         // postpone voting window
-        votingInfoEntity.votingStartTimestamp = votingInfoFromChain.getVotingStartTimestamp()
+        votingInfoEntity.votingStartTimestamp = votingInfoFromChain.getVotingStartTimestamp().toU32()
         votingInfoEntity.save()
         proposalPactEntity.votingInfo = votingInfoEntity.id
     } else if (functionSignature == "0x0fee5347") {
@@ -200,6 +199,23 @@ export function handleProposalPactLogPactAction(event: ProposalPactActionEvent):
         } else {
             proposalPactEntity.noVotes = proposalPactEntity.noVotes.plus(BigInt.fromI32(1))
         }
+        let userInteractionData = contract.userInteractionData(event.params.uid, event.transaction.from)
+        let userInteractionDataEntity = UserInteractionData.load(event.params.uid.concat(event.transaction.from))
+
+        if (!userInteractionDataEntity) {
+            userInteractionDataEntity = new UserInteractionData(event.params.uid.concat(event.transaction.from))
+        }
+        // proposalPactEntity.userInteractionData.push(userInteractionDataEntity.id)
+        // proposalPactEntity.userInteractionData.push(changetype<Bytes>("0x030f257f42a1bb6a60bc61c9a483837a180abdb00d580346666e2522ce1c5f0cbe1429d2d0683157bf10488051b7b40787c85300"))
+    
+        userInteractionDataEntity.canVote = userInteractionData.getCanVote()
+        userInteractionDataEntity.hasVoted = userInteractionData.getHasVoted()
+        userInteractionDataEntity.castedVote = userInteractionData.getCastedVote()
+        userInteractionDataEntity.contribution = userInteractionData.getContribution().toString()
+        userInteractionDataEntity.pact = proposalPactEntity.id
+        userInteractionDataEntity.save()
+
+
     } else if (functionSignature == "0x028669f9") {
         // conclude voting
         txType = TransactionType.CONCLUDE_PP_VOTE
@@ -224,15 +240,4 @@ export function handleProposalPactLogPactAction(event: ProposalPactActionEvent):
         event.params.uid,
         txType
     );
-}
-
-export function handleContribution(event: LogContributionEvent): void {
-    const entity = ProposalPactEntity.load(event.params.uid);
-    let contract = ProposalPact.bind(event.address)
-    let pactInfoFromChain = contract.pacts(event.params.uid)
-
-    if (!entity) return
-    entity.totalValue = pactInfoFromChain.getTotalValue().toString()
-    
-    entity.save()
 }

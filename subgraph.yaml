@@ -25,12 +25,16 @@ dataSources:
       eventHandlers:
         - event: LogPactCreated(indexed address,bytes32)
           handler: handleLogPactCreated
+          receipt: true
         - event: LogPaymentMade(indexed bytes32,uint256,indexed address)
           handler: handleLogPaymentMade
+          receipt: true
         - event: LogStateUpdate(indexed bytes32,uint8,indexed address)
           handler: handleLogStateUpdate
+          receipt: true
         - event: LogPactAction(indexed bytes32)
           handler: handleGigPactLogPactAction
+          receipt: true
       file: ./src/gigPactHandlers.ts
   - kind: ethereum
     name: proposalpact
@@ -54,10 +58,14 @@ dataSources:
       eventHandlers:
         - event: LogPactCreated(indexed address,bytes32)
           handler: handleLogProposalPactCreated
+          receipt: true
         - event: LogPactAction(indexed bytes32)
           handler: handleProposalPactLogPactAction
+          receipt: true
         - event: LogContribution(indexed bytes32,address,uint256)
           handler: handleLogContribution
+          receipt: true
         - event: LogAmountOut(indexed bytes32,indexed address,uint256)
           handler: handleLogAmountOut
+          receipt: true
       file: ./src/proposalPactHanders.ts
