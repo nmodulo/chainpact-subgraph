@@ -4,11 +4,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: gigpact
-    network: mumbai
+    network: fuji
     source:
       abi: GigPact
-      address: "0xa4ce7b4024CD0D863823FB7Cd3849e8Aacbd5f97"
-      startBlock: 32334929
+      address: "0x742490d61F0c3919D027D0CE8cDF65A136BEEDBa"
+      startBlock: 19217582
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -38,11 +38,11 @@ dataSources:
       file: ./src/gigPactHandlers.ts
   - kind: ethereum
     name: proposalpact
-    network: mumbai
+    network: fuji
     source:
       abi: ProposalPact
-      address: "0xd1D7C00f3F4A0A4a5539694D1d80075d8d223A48"
-      startBlock: 32334896
+      address: "0x2C7EB1BCF526768c0D15E374AD7c71D7Aa9644D4"
+      startBlock: 19217481
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

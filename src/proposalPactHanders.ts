@@ -2,11 +2,37 @@ import { ProposalPact, LogPactCreated as LogProposalPactCreatedEvent, LogvotingC
 import {
     DisputeData, GigPactEntity,
     // TransactionEntity,
-    LogPaymentMade, ProposalPactEntity, PayData, UserInteractionData, VotingInfo
+    LogPaymentMade, ProposalPactEntity, PayData, UserInteractionData, VotingInfo, ProposalTransactionEntity
 } from "../generated/schema"
 import { Address, BigInt, Bytes, Entity, ethereum, log } from '@graphprotocol/graph-ts'
 import { PactState, PactType, TransactionType } from "./types"
-import { addTransaction } from "./gigPactHandlers"
+
+export function addProposalTx(event: ethereum.Event,
+    pactType: number,
+    pactId: Bytes,
+    action: TransactionType,
+): void {
+
+    let transactionEntity = new ProposalTransactionEntity( 
+            event.transaction.hash.concat(pactId)
+        );
+    
+    transactionEntity.action = action;
+    transactionEntity.pactType = pactType as u32;
+    transactionEntity.pactId = pactId;
+    let receipt = event.receipt
+    if(receipt){
+        transactionEntity.gasUsed =receipt.gasUsed.toString()
+    } else {
+        transactionEntity.gasUsed = "0"
+    }
+
+    transactionEntity.gasPrice = event.transaction.gasPrice.toString();
+    transactionEntity.blockTimestamp = event.block.timestamp;
+    transactionEntity.transactionHash = event.transaction.hash
+    transactionEntity.from = event.transaction.from
+    transactionEntity.save();
+}
 
 export function handleLogProposalPactCreated(event: LogProposalPactCreatedEvent): void {
     let entity = new ProposalPactEntity(
@@ -28,22 +54,11 @@ export function handleLogProposalPactCreated(event: LogProposalPactCreatedEvent)
     entity.voters = participantsInfoFromChain.getValue0().map<Bytes>((each: Bytes) => each)
     entity.yesBeneficiaries = participantsInfoFromChain.getValue1().map<Bytes>((each: Bytes) => each)
     entity.noBeneficiaries = participantsInfoFromChain.getValue2().map<Bytes>((each: Bytes) => each)
-
-    // const voters = participantsInfoFromChain.getValue0()
-    // let userInteractionDatas: Bytes[] = []
-
-    // for (let index = 0; index < voters.length; index++) {
-    //     userInteractionDatas.push(
-    //         loadUserInteractionData(event.address, event.params.uid, voters[index]).id
-    //     )
-    // }
-
-    // entity.userInteractionData = []
     entity.blockNumber = event.block.number
     entity.blockTimestamp = event.block.timestamp
     entity.transactionHash = event.transaction.hash
 
-    addTransaction(
+    addProposalTx(
         event,
         PactType.PROPOSALPACT,
         event.params.uid,
@@ -71,21 +86,6 @@ export function loadVotingInfo(event: LogProposalPactCreatedEvent): VotingInfo {
     return votingInfoEntity
 }
 
-export function loadUserInteractionData(contractAddr: Address, pactId: Bytes, voter: Address): UserInteractionData {
-    let entity = new UserInteractionData(pactId.concat(voter))
-    let contract = ProposalPact.bind(contractAddr)
-    let userInteractionData = contract.userInteractionData(pactId, voter)
-
-    entity.canVote = userInteractionData.getCanVote()
-    entity.hasVoted = userInteractionData.getHasVoted()
-    entity.castedVote = userInteractionData.getCastedVote()
-    entity.contribution = userInteractionData.getContribution().toString()
-
-    entity.save()
-
-    return entity
-}
-
 export function handleLogVotingConcluded(event: LogvotingConcludedEvent): void {
     let votingInfoEntity = VotingInfo.load(event.params.uid)
     let entity = ProposalPactEntity.load(event.params.uid)
@@ -97,7 +97,7 @@ export function handleLogVotingConcluded(event: LogvotingConcludedEvent): void {
 
     entity.save()
 
-    addTransaction(
+    addProposalTx(
         event,
         PactType.PROPOSALPACT,
         event.params.uid,
@@ -115,21 +115,18 @@ export function handleLogContribution(event: LogContributionEvent): void {
 
     if (!userInteractionDataEntity) {
         userInteractionDataEntity = new UserInteractionData(event.params.uid.concat(event.params.payer))
+        userInteractionDataEntity.pact = proposalPactEntity.id
     }
-    // proposalPactEntity.userInteractionData.push(userInteractionDataEntity.id)
-    // proposalPactEntity.userInteractionData.push(changetype<Bytes>("0x030f257f42a1bb6a60bc61c9a483837a180abdb00d580346666e2522ce1c5f0cbe1429d2d0683157bf10488051b7b40787c85300"))
-
     userInteractionDataEntity.canVote = userInteractionData.getCanVote()
     userInteractionDataEntity.hasVoted = userInteractionData.getHasVoted()
     userInteractionDataEntity.castedVote = userInteractionData.getCastedVote()
     userInteractionDataEntity.contribution = userInteractionData.getContribution().toString()
-    userInteractionDataEntity.pact = proposalPactEntity.id
     userInteractionDataEntity.save()
 
     proposalPactEntity.totalValue = contract.pacts(event.params.uid).getTotalValue().toString()
     proposalPactEntity.save()
 
-    addTransaction(
+    addProposalTx(
         event,
         PactType.PROPOSALPACT,
         event.params.uid,
@@ -147,22 +144,21 @@ export function handleLogAmountOut(event: LogAmountOutEvent): void {
 
     if (!userInteractionDataEntity) {
         userInteractionDataEntity = new UserInteractionData(event.params.uid.concat(event.params.payee))
+        userInteractionDataEntity.pact = proposalPactEntity.id
     }
     
     userInteractionDataEntity.canVote = userInteractionData.getCanVote()
     userInteractionDataEntity.hasVoted = userInteractionData.getHasVoted()
     userInteractionDataEntity.castedVote = userInteractionData.getCastedVote()
     userInteractionDataEntity.contribution = userInteractionData.getContribution().toString()
-    userInteractionDataEntity.pact = proposalPactEntity.id
 
     // proposalPactEntity.userInteractionData.push(userInteractionDataEntity.id)
     // proposalPactEntity.userInteractionData.push(changetype<Bytes>("0x030f257f42a1bb6a60bc61c9a483837a180abdb00d580346666e2522ce1c5f0cbe1429d2d0683157bf10488051b7b40787c85300"))
     proposalPactEntity.totalValue = contract.pacts(event.params.uid).getTotalValue().toString()
-    
     userInteractionDataEntity.save()
     proposalPactEntity.save()
 
-    addTransaction(
+    addProposalTx(
         event,
         PactType.PROPOSALPACT,
         event.params.uid,
@@ -234,7 +230,7 @@ export function handleProposalPactLogPactAction(event: ProposalPactActionEvent):
     }
 
     proposalPactEntity.save()
-    addTransaction(
+    addProposalTx(
         event,
         PactType.PROPOSALPACT,
         event.params.uid,

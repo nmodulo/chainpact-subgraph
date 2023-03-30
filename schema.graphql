@@ -24,19 +24,41 @@ type GigPactEntity @entity {
   transactionHash: Bytes!
   employeeDelegates: [Bytes!]!
   employerDelegates: [Bytes!]!
+  paymentHistory: [LogPaymentMade!]! @derivedFrom(field: "pact")
+  pactTransactions: [GigTransactionEntity!]! @derivedFrom(field: "pactId")
 }
 
-type TransactionEntity @entity(immutable: true) {
+type ProposalTransactionEntity @entity(immutable: true) {
   id: Bytes!
   action: Int!
   pactType: Int!
-  pactId: Bytes!
+  pactId: ProposalPactEntity
   gasPrice: String!
   gasUsed: String!
   transactionHash: Bytes!
   blockTimestamp: BigInt!
   from: Bytes!
 }
+
+
+type GigTransactionEntity @entity(immutable: true) {
+  id: Bytes!
+  action: Int!
+  pactType: Int!
+  pactId: GigPactEntity
+  gasPrice: String!
+  gasUsed: String!
+  transactionHash: Bytes!
+  blockTimestamp: BigInt!
+  from: Bytes!
+}
+
+# type Arbitrator @entity{
+#   id: Bytes!
+#   dispute: DisputeData!
+#   addr: Bytes!
+#   hasResolved: Boolean!
+# }
 
 type DisputeData @entity {
   id: Bytes!
@@ -45,6 +67,7 @@ type DisputeData @entity {
   arbitratorProposer: Bytes!
   proposedAmount: String!
   proposedArbitrators: [Bytes!]!
+  hasResolved: [Boolean!]!
 }
 
 type PayData @entity {
@@ -59,11 +82,12 @@ type PayData @entity {
 type LogPaymentMade @entity(immutable: true) {
   id: Bytes!
   pactId: Bytes!
-  value: BigInt!
+  amount: BigInt!
   payer: Bytes!
   blockNumber: BigInt!
-  blockTimestamp: BigInt!
+  timestamp: BigInt!
   transactionHash: Bytes!
+  pact: GigPactEntity!
 }
 
 type VotingInfo @entity {
@@ -105,4 +129,5 @@ type ProposalPactEntity @entity {
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
+  pactTransactions: [ProposalTransactionEntity!]! @derivedFrom(field: "pactId")
 }

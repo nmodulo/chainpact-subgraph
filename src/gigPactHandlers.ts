@@ -1,6 +1,7 @@
 import {
     BigInt,
-    Bytes, ethereum
+    Bytes, ethereum,
+    store
 } from "@graphprotocol/graph-ts";
 import {
     GigPact,
@@ -11,25 +12,24 @@ import {
 } from "../generated/gigpact/GigPact";
 import {
     DisputeData,
-    GigPactEntity, LogPaymentMade, PayData, TransactionEntity
+    GigPactEntity, LogPaymentMade, PayData, GigTransactionEntity, ProposalPactEntity, ProposalTransactionEntity,
 } from "../generated/schema";
 import { PactState, PactType, TransactionType } from "./types";
 
-export function addTransaction(
-    event: ethereum.Event,
+export function addGigTx(event: ethereum.Event,
     pactType: number,
     pactId: Bytes,
     action: TransactionType,
 ): void {
-    let transactionEntity = new TransactionEntity( 
+    let transactionEntity = new GigTransactionEntity(
         event.transaction.hash.concat(pactId)
-    );
+    )
     transactionEntity.action = action;
     transactionEntity.pactType = pactType as u32;
     transactionEntity.pactId = pactId;
     let receipt = event.receipt
-    if(receipt){
-        transactionEntity.gasUsed =receipt.gasUsed.toString()
+    if (receipt) {
+        transactionEntity.gasUsed = receipt.gasUsed.toString()
     } else {
         transactionEntity.gasUsed = "0"
     }
@@ -51,7 +51,7 @@ export function handleLogPactCreated(event: LogPactCreatedEvent): void {
     let contract = GigPact.bind(event.address);
     let pactData = contract.pactData(event.params.pactid);
     let payDataFromChain = contract.payData(event.params.pactid);
-    let arbitrators = contract.getArbitratrators(event.params.pactid);
+    // let arbitrators = contract.getArbitratrators(event.params.pactid);
     let documentHash = contract.externalDocumentHash(event.params.pactid);
 
     disputeDataEntity.proposedAmount = payDataFromChain
@@ -60,11 +60,12 @@ export function handleLogPactCreated(event: LogPactCreatedEvent): void {
     disputeDataEntity.arbitratorProposer = pactData.getArbitratorProposer();
     disputeDataEntity.arbitratorProposedFlag = pactData.getArbitratorProposedFlag();
     disputeDataEntity.arbitratorAccepted = pactData.getArbitratorAccepted();
-    let proposedArbitrators: Bytes[] = [];
-    for (let i = 0; i < arbitrators.length; i++) {
-        proposedArbitrators.push(changetype<Bytes>(arbitrators[i]));
-    }
-    disputeDataEntity.proposedArbitrators = proposedArbitrators;
+    // let proposedArbitrators: Bytes[] = [];
+    // for (let i = 0; i < arbitrators.length; i++) {
+        // proposedArbitrators.push(changetype<Bytes>(arbitrators[i]));
+    // }
+    disputeDataEntity.proposedArbitrators = [];
+    disputeDataEntity.hasResolved = [];
 
     payData.pauseDuration = payDataFromChain.getPauseDuration();
     payData.pauseResumeTime = payDataFromChain.getPauseResumeTime();
@@ -96,35 +97,39 @@ export function handleLogPactCreated(event: LogPactCreatedEvent): void {
     entity.blockTimestamp = event.block.timestamp;
     entity.transactionHash = event.transaction.hash;
 
-    addTransaction(
+    disputeDataEntity.save();
+    payData.save();
+    entity.save();
+    addGigTx(
         event,
         PactType.GIGPACT,
         event.params.pactid,
         TransactionType.CREATE_GP,
     );
-
-    disputeDataEntity.save();
-    payData.save();
-    entity.save();
 }
 
 export function handleLogPaymentMade(event: LogPaymentMadeEvent): void {
-    let gigPactEntity = new LogPaymentMade(
+    let paymentEntity = new LogPaymentMade(
         event.transaction.hash.concatI32(event.logIndex.toI32())
     );
-    gigPactEntity.payer = event.params.payer;
-    gigPactEntity.pactId = event.params.pactid;
-    gigPactEntity.value = event.params.value;
-    gigPactEntity.blockNumber = event.block.number;
-    gigPactEntity.blockTimestamp = event.block.timestamp;
-    gigPactEntity.transactionHash = event.transaction.hash;
-    addTransaction(
+    let gigPactEntity = GigPactEntity.load(event.params.pactid)
+
+    paymentEntity.payer = event.params.payer;
+    paymentEntity.pactId = event.params.pactid;
+    paymentEntity.amount = event.params.value;
+    paymentEntity.blockNumber = event.block.number;
+    paymentEntity.timestamp = event.block.timestamp;
+    paymentEntity.transactionHash = event.transaction.hash;
+    if (gigPactEntity !== null) {
+        paymentEntity.pact = gigPactEntity.id
+    }
+    addGigTx(
         event,
         PactType.GIGPACT,
         event.params.pactid,
         TransactionType.PAY
     );
-    gigPactEntity.save();
+    paymentEntity.save();
 }
 
 export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
@@ -169,35 +174,47 @@ export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
         }
     } else if (event.params.newState === PactState.ARBITRATED) {
         let disputeDataEntity = DisputeData.load(event.params.pactid);
-        if (!disputeDataEntity) return
-        disputeDataEntity.proposedAmount = payDataFromChain
-            .getProposedAmount()
-            .toString();
-        disputeDataEntity.arbitratorProposer = pactData.getArbitratorProposer();
-        disputeDataEntity.arbitratorProposedFlag = pactData.getArbitratorProposedFlag();
-        disputeDataEntity.arbitratorAccepted = pactData.getArbitratorAccepted();
-    } else if( event.params.newState === PactState.RESIGNED){
+        if (disputeDataEntity) {
+            disputeDataEntity.proposedAmount = payDataFromChain
+                .getProposedAmount()
+                .toString();
+            disputeDataEntity.arbitratorProposer = pactData.getArbitratorProposer();
+            disputeDataEntity.arbitratorProposedFlag = pactData.getArbitratorProposedFlag();
+            disputeDataEntity.arbitratorAccepted = pactData.getArbitratorAccepted();
+            let hasResolved: boolean[] = []
+            let proposedArbitrators: Bytes[] = []
+            let arbitrators = contract.getArbitratrators(event.params.pactid)
+            for (let i = 0; i < arbitrators.length; i++) {
+                proposedArbitrators.push(changetype<Bytes>(arbitrators[i].addr))
+                hasResolved.push(arbitrators[i].hasResolved)
+            }
+            disputeDataEntity.proposedArbitrators = proposedArbitrators
+            disputeDataEntity.hasResolved = hasResolved
+            disputeDataEntity.save()
+        }
+
+    } else if (event.params.newState === PactState.RESIGNED) {
         txType = TransactionType.RESIGN
-    } else if(event.params.newState === PactState.TERMINATED){
+    } else if (event.params.newState === PactState.TERMINATED) {
         txType = TransactionType.TERMINATE
-    } else if (event.params.newState === PactState.RETRACTED){
+    } else if (event.params.newState === PactState.RETRACTED) {
         txType = TransactionType.RETRACT
-    } else if(event.params.newState === PactState.FNF_EMPLOYEE){
+    } else if (event.params.newState === PactState.FNF_EMPLOYEE) {
         txType = TransactionType.FNF_EMPLOYEE
-    } else if(event.params.newState === PactState.FNF_EMPLOYER){
+    } else if (event.params.newState === PactState.FNF_EMPLOYER) {
         txType = TransactionType.FNF_EMPLOYER
-    } else if(event.params.newState === PactState.FNF_SETTLED){
+    } else if (event.params.newState === PactState.FNF_SETTLED) {
         txType = TransactionType.FNF_SETTLE
-    } else if(event.params.newState === PactState.ENDED){
+    } else if (event.params.newState === PactState.ENDED) {
         txType = TransactionType.RECLAIM_STAKE
-    }  else {
+    } else {
         gigPactEntity.pactState = event.params.newState;
         payDataEntity.save();
         gigPactEntity.save();
         return
     }
     gigPactEntity.pactState = event.params.newState;
-    addTransaction(event, PactType.GIGPACT, event.params.pactid, txType);
+    addGigTx(event, PactType.GIGPACT, event.params.pactid, txType);
     payDataEntity.save();
     gigPactEntity.save();
 }
@@ -246,7 +263,7 @@ export function handleGigPactLogPactAction(event: LogPactActionEvent): void {
             ) {
                 //Sender is employee
                 let newDelegateArr = gigPactEntity.employeeDelegates
-                for(let i = 0; i<delegatesGiven.length; i++){
+                for (let i = 0; i < delegatesGiven.length; i++) {
                     newDelegateArr.push(delegatesGiven[i])
                 }
                 gigPactEntity.employeeDelegates = newDelegateArr
@@ -255,36 +272,36 @@ export function handleGigPactLogPactAction(event: LogPactActionEvent): void {
                 gigPactEntity.employer.toString().toLowerCase()
             ) {
                 let newDelegateArr = gigPactEntity.employerDelegates
-                for(let i = 0; i<delegatesGiven.length; i++){
+                for (let i = 0; i < delegatesGiven.length; i++) {
                     newDelegateArr.push(delegatesGiven[i]);
                 }
                 gigPactEntity.employerDelegates = newDelegateArr
             }
-        } 
-        
+        }
+
         else {
             if (
                 event.transaction.from.toString().toLowerCase() ===
                 gigPactEntity.employee.toString().toLowerCase()
             ) {
                 let newDelegateArr = gigPactEntity.employeeDelegates
-                for(let i = 0; i<delegatesGiven.length; i++){
+                for (let i = 0; i < delegatesGiven.length; i++) {
                     let index = gigPactEntity.employeeDelegates.indexOf(delegatesGiven[i]);
-                    if(index >= 0){
+                    if (index >= 0) {
                         newDelegateArr[index] = newDelegateArr[newDelegateArr.length - 1]
                         newDelegateArr.pop()
                     }
                 }
                 gigPactEntity.employeeDelegates = newDelegateArr
             }
-         else if (
+            else if (
                 event.transaction.from.toString().toLowerCase() ===
                 gigPactEntity.employer.toString().toLowerCase()
             ) {
                 let newDelegateArr = gigPactEntity.employerDelegates
-                for(let i = 0; i<delegatesGiven.length; i++){
+                for (let i = 0; i < delegatesGiven.length; i++) {
                     let index = gigPactEntity.employerDelegates.indexOf(delegatesGiven[i]);
-                    if(index >= 0){
+                    if (index >= 0) {
                         newDelegateArr[index] = newDelegateArr[newDelegateArr.length - 1]
                         newDelegateArr.pop()
                     }
@@ -294,26 +311,40 @@ export function handleGigPactLogPactAction(event: LogPactActionEvent): void {
         }
     } else {
         let disputeDataEntity = DisputeData.load(event.params.pactid);
-        if (!disputeDataEntity) return;
 
-        let arbitrators = contract.getArbitratrators(event.params.pactid);
-        disputeDataEntity.proposedAmount = payDataFromChain
-            .getProposedAmount()
-            .toString();
-        disputeDataEntity.arbitratorProposer = pactData.getArbitratorProposer();
-        disputeDataEntity.arbitratorProposedFlag = pactData.getArbitratorProposedFlag();
-        disputeDataEntity.arbitratorAccepted = pactData.getArbitratorAccepted();
-        let proposedArbitrators: Bytes[] = [];
-        for (let i = 0; i < arbitrators.length; i++) {
-            proposedArbitrators.push(changetype<Bytes>(arbitrators[i].addr));
+        if (disputeDataEntity) {
+            disputeDataEntity.proposedAmount = payDataFromChain
+                .getProposedAmount()
+                .toString();
+            disputeDataEntity.arbitratorProposer = pactData.getArbitratorProposer();
+            disputeDataEntity.arbitratorProposedFlag = pactData.getArbitratorProposedFlag();
+            disputeDataEntity.arbitratorAccepted = pactData.getArbitratorAccepted();
+            let hasResolved: boolean[] = []
+            let proposedArbitrators: Bytes[] = []
+            let arbitrators = contract.getArbitratrators(event.params.pactid)
+            for (let i = 0; i < arbitrators.length; i++) {
+                proposedArbitrators.push(changetype<Bytes>(arbitrators[i].addr))
+                hasResolved.push(arbitrators[i].hasResolved)
+            }
+            disputeDataEntity.proposedArbitrators = proposedArbitrators
+            disputeDataEntity.hasResolved = hasResolved
+            disputeDataEntity.save()
         }
-        disputeDataEntity.proposedArbitrators = proposedArbitrators;
-
-        disputeDataEntity.save();
 
         //proposeArbitrators
         if (functionSignature === "a7dc8bc0") {
             txType = TransactionType.PROPOSE_ARBITRATORS;
+            // let existingArbitrators = disputeDataEntity.proposedArbitrators
+            // for (let i = 0; i < existingArbitrators.length; i++) {
+            //     store.remove("Arbitrator", existingArbitrators[i].toString())
+            // }
+            // for (let i = 0; i < arbitrators.length; i++) {
+            // let arbitratorEntity = new Arbitrator(disputeDataEntity.id.concat(event.transaction.from))
+            // arbitratorEntity.addr = arbitrators[i].addr
+            // arbitratorEntity.hasResolved = false
+            // arbitratorEntity.dispute = disputeDataEntity.id
+            // arbitratorEntity.save()
+            // }
         }
 
         //acceptOrRejectArbitrators - reject
@@ -323,11 +354,16 @@ export function handleGigPactLogPactAction(event: LogPactActionEvent): void {
 
         //arbitratorResolve
         else if (functionSignature === "4844a1f9") {
+            // let arbitratorEntity = Arbitrator.load(disputeDataEntity.id.concat(event.transaction.from))
+            // if(arbitratorEntity){
+            //     arbitratorEntity.hasResolved = true
+            //     arbitratorEntity.save()
+            // }
             txType = TransactionType.RESOLVE;
         }
     }
 
-    addTransaction(event, PactType.GIGPACT, event.params.pactid, txType);
+    addGigTx(event, PactType.GIGPACT, event.params.pactid, txType);
     payDataEntity.save();
     gigPactEntity.save();
 }
