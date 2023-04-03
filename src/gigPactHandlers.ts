@@ -21,9 +21,9 @@ export function addGigTx(event: ethereum.Event,
     pactId: Bytes,
     action: TransactionType,
 ): void {
-    let transactionEntity = new GigTransactionEntity(
-        event.transaction.hash.concat(pactId)
-    )
+    let transactionEntity = new ProposalTransactionEntity( 
+        event.transaction.hash.concat(changetype<Bytes>(event.logIndex))
+    );
     transactionEntity.action = action;
     transactionEntity.pactType = pactType as u32;
     transactionEntity.pactId = pactId;
@@ -172,6 +172,8 @@ export function handleLogStateUpdate(event: LogStateUpdateEvent): void {
         } else {
             txType = TransactionType.RESUME;
         }
+    } else if(event.params.newState === PactState.PAUSED) {
+        txType = TransactionType.PAUSE
     } else if (event.params.newState === PactState.ARBITRATED) {
         let disputeDataEntity = DisputeData.load(event.params.pactid);
         if (disputeDataEntity) {
